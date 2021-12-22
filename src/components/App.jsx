@@ -36,18 +36,22 @@ import Notification from './Notification.jsx';
 import { useNotify } from '../hooks/index.js';
 
 import getLogger from '../lib/logger.js';
+
 const log = getLogger('App');
 log.enabled = true;
 
 const AuthProvider = ({ children }) => {
   const currentUser = JSON.parse(localStorage.getItem('user'));
   const navigate = useNavigate();
-  const [user, setUser] = useState(currentUser ? currentUser : null);
+  const [user, setUser] = useState(currentUser || null);
 
   const logIn = (userData) => {
-    userData.username = userData.name;
-    localStorage.setItem('user', JSON.stringify(userData));
-    setUser(userData);
+    const userAuth = {
+      ...userData,
+      username: userData.name,
+    };
+    localStorage.setItem('user', JSON.stringify(userAuth));
+    setUser(userAuth);
   };
 
   const logOut = () => {

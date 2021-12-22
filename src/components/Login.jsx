@@ -11,9 +11,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth, useNotify } from '../hooks/index.js';
 import routes from '../routes.js';
 
-
 const getValidationSchema = () => yup.object().shape({});
-
 
 const Login = () => {
   const { t } = useTranslation();
@@ -40,13 +38,13 @@ const Login = () => {
         notify.addMessage(t('loginSuccess'));
       } catch (e) {
         if (e.response?.status === 401) {
-          notify.addErrors([ { defaultMessage: t('loginFail') } ]);
-
+          notify.addErrors([{ defaultMessage: t('loginFail') }]);
         } else if (e.response?.status === 422 && Array.isArray(e.response?.data)) {
-          const errors = e.response?.data.reduce((acc, err) => ({ ...acc, [err.field]: err.defaultMessage }), {});
+          const errors = e.response?.data
+            .reduce((acc, err) => ({ ...acc, [err.field]: err.defaultMessage }), {});
           setErrors(errors);
         } else {
-          notify.addErrors([ { defaultMessage: e.message }]);
+          notify.addErrors([{ defaultMessage: e.message }]);
         }
         setSubmitting(false);
       }

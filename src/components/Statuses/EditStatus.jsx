@@ -5,23 +5,17 @@ import { useTranslation } from 'react-i18next';
 import { Form, Button } from 'react-bootstrap';
 import { useFormik } from 'formik';
 import * as yup from 'yup';
-import { useNavigate } from 'react-router-dom';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 
 import routes from '../../routes.js';
 import { useAuth, useNotify } from '../../hooks/index.js';
 
 import getLogger from '../../lib/logger.js';
+
 const log = getLogger('client');
 
-const getValidationSchema = () => yup.object().shape({
-  name: yup
-    .string()
-    .required('modals.required')
-    .min(3, 'modals.min')
-    .max(20, 'modals.max')
-});
+const getValidationSchema = () => yup.object().shape({});
 
 const EditStatus = () => {
   const { t } = useTranslation();
@@ -37,11 +31,11 @@ const EditStatus = () => {
       try {
         const { data } = await axios.get(`${routes.apiStatuses()}/${params.statusId}`, { headers: auth.getAuthHeader() });
         setStatus(data);
-      } catch(e) {
+      } catch (e) {
         if (e.response?.status === 401) {
           const from = { pathname: routes.loginPagePath() };
           navigate(from);
-          notify.addErrors([ { defaultMessage: t('Доступ запрещён! Пожалуйста, авторизируйтесь.') } ]);
+          notify.addErrors([{ defaultMessage: t('Доступ запрещён! Пожалуйста, авторизируйтесь.') }]);
         } else if (e.response?.status === 422 && e.response?.data) {
           notify.addErrors(e.response?.data);
         } else {
@@ -60,11 +54,11 @@ const EditStatus = () => {
     },
     validationSchema: getValidationSchema(),
     onSubmit: async ({ name }, { setSubmitting, setErrors }) => {
-      const status = { name };
+      const newStatus = { name };
       try {
         // TODO: api
-        await axios.put(`${routes.apiStatuses()}/${params.statusId}`, status, { headers: auth.getAuthHeader() });
-        log('status.edit', status);
+        await axios.put(`${routes.apiStatuses()}/${params.statusId}`, newStatus, { headers: auth.getAuthHeader() });
+        log('status.edit', newStatus);
         const from = { pathname: routes.statusesPagePath() };
         navigate(from);
         notify.addMessage(t('statusEdited'));
@@ -75,9 +69,10 @@ const EditStatus = () => {
         if (e.response?.status === 401) {
           const from = { pathname: routes.loginPagePath() };
           navigate(from);
-          notify.addErrors([ { defaultMessage: t('Доступ запрещён! Пожалуйста, авторизируйтесь.') } ]);
+          notify.addErrors([{ defaultMessage: t('Доступ запрещён! Пожалуйста, авторизируйтесь.') }]);
         } else if (e.response?.status === 422) {
-          const errors = e.response?.data.reduce((acc, err) => ({ ...acc, [err.field]: err.defaultMessage }), {});
+          const errors = e.response?.data
+            .reduce((acc, err) => ({ ...acc, [err.field]: err.defaultMessage }), {});
           setErrors(errors);
         } else {
           notify.addErrors([{ defaultMessage: e.message }]);
@@ -103,13 +98,14 @@ const EditStatus = () => {
             isInvalid={f.errors.name && f.touched.name}
             name="name"
             id="name"
-            type="text" />
+            type="text"
+          />
           <Form.Control.Feedback type="invalid">
             {t(f.errors.name)}
           </Form.Control.Feedback>
         </Form.Group>
         <Button variant="primary" type="submit" disabled={f.isSubmitting}>
-          {t('create')}
+          {t('edit')}
         </Button>
       </Form>
     </>

@@ -12,6 +12,7 @@ import routes from '../../routes.js';
 import { useAuth, useNotify } from '../../hooks/index.js';
 
 import getLogger from '../../lib/logger.js';
+
 const log = getLogger('client');
 log.enabled = true;
 
@@ -51,11 +52,11 @@ const NewTask = () => {
           labels: labelsData,
           statuses: statusesData,
         });
-      } catch(e) {
+      } catch (e) {
         if (e.response?.status === 401) {
           const from = { pathname: routes.loginPagePath() };
           navigate(from);
-          notify.addErrors([ { defaultMessage: t('Доступ запрещён! Пожалуйста, авторизируйтесь.') } ]);
+          notify.addErrors([{ defaultMessage: t('Доступ запрещён! Пожалуйста, авторизируйтесь.') }]);
         } else if (e.response?.status === 422 && Array.isArray(e.response?.data)) {
           notify.addErrors(e.response?.data);
         } else {
@@ -71,9 +72,9 @@ const NewTask = () => {
     initialValues: {
       name: '',
       description: '',
-      status: null,
-      executor: null,
-      labels: [],
+      taskStatusId: null,
+      executorId: null,
+      labelIds: [],
     },
     validationSchema: getValidationSchema(),
     onSubmit: async (taskData, { setSubmitting, setErrors }) => {
@@ -81,12 +82,13 @@ const NewTask = () => {
         const requestTask = {
           name: taskData.name,
           description: taskData.description,
-          executorId: parseInt(taskData.executor, 10),
-          taskStatusId: parseInt(taskData.status),
-          labelIds: taskData.labels.map((id) => parseInt(id, 10)),
+          executorId: parseInt(taskData.executorId, 10),
+          taskStatusId: parseInt(taskData.taskStatusId, 10),
+          labelIds: taskData.labelIds.map((id) => parseInt(id, 10)),
         };
-        const data = await axios.post(routes.apiTasks(), requestTask, { headers: auth.getAuthHeader() });
-        log('task.create', data);
+        const response = await axios
+          .post(routes.apiTasks(), requestTask, { headers: auth.getAuthHeader() });
+        log('task.create', response);
         const from = { pathname: routes.tasksPagePath() };
         navigate(from);
         notify.addMessage(t('taskCreated'));
@@ -96,9 +98,10 @@ const NewTask = () => {
         if (e.response?.status === 401) {
           const from = { pathname: routes.loginPagePath() };
           navigate(from);
-          notify.addErrors([ { defaultMessage: t('Доступ запрещён! Пожалуйста, авторизируйтесь.') } ]);
+          notify.addErrors([{ defaultMessage: t('Доступ запрещён! Пожалуйста, авторизируйтесь.') }]);
         } else if (e.response?.status === 422 && Array.isArray(e.response?.data)) {
-          const errors = e.response?.data.reduce((acc, err) => ({ ...acc, [err.field]: err.defaultMessage }), {});
+          const errors = e.response?.data
+            .reduce((acc, err) => ({ ...acc, [err.field]: err.defaultMessage }), {});
           setErrors(errors);
         } else {
           notify.addErrors([{ defaultMessage: e.message }]);
@@ -131,7 +134,8 @@ const NewTask = () => {
 
         <Form.Group className="mb-3" controlId="description">
           <Form.Label>{t('description')}</Form.Label>
-          <Form.Control as="textarea"
+          <Form.Control
+            as="textarea"
             rows={3}
             value={f.values.description}
             disabled={f.isSubmitting}
@@ -145,58 +149,59 @@ const NewTask = () => {
           </Form.Control.Feedback>
         </Form.Group>
 
-        <Form.Group className="mb-3" controlId="status">
+        <Form.Group className="mb-3" controlId="taskStatusId">
           <Form.Label>{t('status')}</Form.Label>
           <Form.Select
             nullable
-            value={f.values.status}
+            value={f.values.taskStatusId}
             disabled={f.isSubmitting}
             onChange={f.handleChange}
             onBlur={f.handleBlur}
-            isInvalid={f.errors.status && f.touched.status}
-            name="status"
+            isInvalid={f.errors.taskStatusId && f.touched.taskStatusId}
+            name="taskStatusId"
           >
-            <option value=""></option>
-            {statuses.map((status) => <option key={status.id} value={status.id}>{status.name}</option>)}
+            <option value="">{null}</option>
+            {statuses
+              .map((status) => <option key={status.id} value={status.id}>{status.name}</option>)}
           </Form.Select>
           <Form.Control.Feedback type="invalid">
-            {t(f.errors.status)}
+            {t(f.errors.taskStatusId)}
           </Form.Control.Feedback>
         </Form.Group>
 
-        <Form.Group className="mb-3" controlId="executor">
+        <Form.Group className="mb-3" controlId="executorId">
           <Form.Label>{t('executor')}</Form.Label>
           <Form.Select
-            value={f.values.executor}
+            value={f.values.executorId}
             disabled={f.isSubmitting}
             onChange={f.handleChange}
             onBlur={f.handleBlur}
-            isInvalid={f.errors.executor && f.touched.executor}
-            name="executor"
+            isInvalid={f.errors.executorId && f.touched.executorId}
+            name="executorId"
           >
-            <option value=""></option>
+            <option value="">{null}</option>
             {executors.map((executor) => <option key={executor.id} value={executor.id}>{`${executor.firstName} ${executor.lastName}`}</option>)}
           </Form.Select>
           <Form.Control.Feedback type="invalid">
-            {t(f.errors.executor)}
+            {t(f.errors.executorId)}
           </Form.Control.Feedback>
         </Form.Group>
 
-        <Form.Group className="mb-3" controlId="labels">
+        <Form.Group className="mb-3" controlId="labelIds">
           <Form.Label>{t('labels')}</Form.Label>
           <Form.Select
             multiple
-            value={f.values.labels}
+            value={f.values.labelIds}
             disabled={f.isSubmitting}
             onChange={f.handleChange}
             onBlur={f.handleBlur}
-            isInvalid={f.errors.labels && f.touched.labels}
-            name="labels"
+            isInvalid={f.errors.labelIds && f.touched.labelIds}
+            name="labelIds"
           >
             {labels.map((label) => <option key={label.id} value={label.id}>{label.name}</option>)}
           </Form.Select>
           <Form.Control.Feedback type="invalid">
-            {t(f.errors.labels)}
+            {t(f.errors.labelIds)}
           </Form.Control.Feedback>
         </Form.Group>
 

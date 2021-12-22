@@ -4,18 +4,17 @@ import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Form, Button } from 'react-bootstrap';
 import { useFormik } from 'formik';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import * as yup from 'yup';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
 
 import routes from '../../routes.js';
 import { useAuth, useNotify } from '../../hooks/index.js';
 
 import getLogger from '../../lib/logger.js';
+
 const log = getLogger('edit task');
 log.enabled = true;
-
 
 const getValidationSchema = () => yup.object().shape({});
 
@@ -37,7 +36,7 @@ const EditTask = () => {
     const fetchData = async () => {
       try {
         const [
-          { data: taskData },
+          { data: currentTaskData },
           { data: executorsData },
           { data: labelsData },
           { data: statusesData },
@@ -48,16 +47,16 @@ const EditTask = () => {
           axios.get(routes.apiStatuses(), { headers: auth.getAuthHeader() }),
         ]);
         setTaskData({
-          task: taskData,
+          task: currentTaskData,
           executors: executorsData,
           labels: labelsData,
           statuses: statusesData,
         });
-      } catch(e) {
+      } catch (e) {
         if (e.response?.status === 401) {
           const from = { pathname: routes.loginPagePath() };
           navigate(from);
-          notify.addErrors([ { defaultMessage: t('Доступ запрещён! Пожалуйста, авторизируйтесь.') } ]);
+          notify.addErrors([{ defaultMessage: t('Доступ запрещён! Пожалуйста, авторизируйтесь.') }]);
         } else if (e.response?.status === 422 && Array.isArray(e.response?.data)) {
           notify.addErrors(e.response?.data);
         } else {
@@ -81,19 +80,19 @@ const EditTask = () => {
     initialValues: {
       name: task.name,
       description: task.description,
-      status: task.status,
+      status: task.taskStatus?.id,
       executor: task.executor?.id,
-      labels: task.labels,
+      labels: task.labels?.map(({ id }) => id),
     },
     validationSchema: getValidationSchema(),
-    onSubmit: async (taskData, { setSubmitting, setErrors }) => {
+    onSubmit: async (currentTaskData, { setSubmitting, setErrors }) => {
       try {
         const requestTask = {
-          name: taskData.name,
-          description: taskData.description,
-          executorId: parseInt(taskData.executor, 10),
-          taskStatusId: parseInt(taskData.status),
-          labelIds: taskData.labels.map((id) => parseInt(id, 10)),
+          name: currentTaskData.name,
+          description: currentTaskData.description,
+          executorId: parseInt(currentTaskData.executor, 10),
+          taskStatusId: parseInt(currentTaskData.status, 10),
+          labelIds: currentTaskData.labels.map((id) => parseInt(id, 10)),
         };
         const data = await axios.put(`${routes.apiTasks()}/${task.id}`, requestTask, { headers: auth.getAuthHeader() });
         log('task.edit', data);
@@ -106,9 +105,10 @@ const EditTask = () => {
         if (e.response?.status === 401) {
           const from = { pathname: routes.loginPagePath() };
           navigate(from);
-          notify.addErrors([ { defaultMessage: t('Доступ запрещён! Пожалуйста, авторизируйтесь.') } ]);
+          notify.addErrors([{ defaultMessage: t('Доступ запрещён! Пожалуйста, авторизируйтесь.') }]);
         } else if (e.response?.status === 422 && Array.isArray(e.response?.data)) {
-          const errors = e.response?.data.reduce((acc, err) => ({ ...acc, [err.field]: err.defaultMessage }), {});
+          const errors = e.response?.data
+            .reduce((acc, err) => ({ ...acc, [err.field]: err.defaultMessage }), {});
           setErrors(errors);
         } else {
           notify.addErrors([{ defaultMessage: e.message }]);
@@ -141,7 +141,8 @@ const EditTask = () => {
 
         <Form.Group className="mb-3" controlId="description">
           <Form.Label>{t('description')}</Form.Label>
-          <Form.Control as="textarea"
+          <Form.Control
+            as="textarea"
             rows={3}
             value={f.values.description}
             disabled={f.isSubmitting}
@@ -166,8 +167,9 @@ const EditTask = () => {
             isInvalid={f.errors.status && f.touched.status}
             name="status"
           >
-            <option value=""></option>
-            {statuses.map((status) => <option value={status.id}>{status.name}</option>)}
+            <option value="">{null}</option>
+            {statuses
+              .map((status) => <option key={status.id} value={status.id}>{status.name}</option>)}
           </Form.Select>
           <Form.Control.Feedback type="invalid">
             {t(f.errors.status)}
@@ -184,8 +186,9 @@ const EditTask = () => {
             isInvalid={f.errors.executor && f.touched.executor}
             name="executor"
           >
-            <option value=""></option>
-            {executors.map((executor) => <option value={executor.id}>{`${executor.firstName} ${executor.lastName}`}</option>)}
+            <option value="">{null}</option>
+            {executors
+              .map((executor) => <option key={executor.id} value={executor.id}>{`${executor.firstName} ${executor.lastName}`}</option>)}
           </Form.Select>
           <Form.Control.Feedback type="invalid">
             {t(f.errors.executor)}
@@ -203,7 +206,7 @@ const EditTask = () => {
             isInvalid={f.errors.labels && f.touched.labels}
             name="labels"
           >
-            {labels.map((label) => <option value={label.id}>{label.name}</option>)}
+            {labels.map((label) => <option key={label.id} value={label.id}>{label.name}</option>)}
           </Form.Select>
           <Form.Control.Feedback type="invalid">
             {t(f.errors.labels)}
@@ -211,7 +214,7 @@ const EditTask = () => {
         </Form.Group>
 
         <Button variant="primary" type="submit">
-          {t('create')}
+          {t('edit')}
         </Button>
       </Form>
     </>

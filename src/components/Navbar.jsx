@@ -11,11 +11,12 @@ import routes from '../routes.js';
 const Navbar = () => {
   const { logOut, user } = useAuth();
   const notify = useNotify();
+  const { t } = useTranslation();
+
   const onLogout = () => {
     logOut();
     notify.addMessage(t('logoutSuccess'));
-  }
-  const { t } = useTranslation();
+  };
   return (
     <BootstrapNavbar bg="light" variant="light" className="mb-3">
       <Container fluid>

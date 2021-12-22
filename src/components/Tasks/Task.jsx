@@ -2,16 +2,17 @@
 
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useParams } from 'react-router-dom';
-import { Card, Button, Container, Row, Col, Form } from 'react-bootstrap';
+import { useParams, useNavigate, Link } from 'react-router-dom';
+import {
+  Card, Button, Container, Row, Col, Form,
+} from 'react-bootstrap';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
-import { Link } from 'react-router-dom';
 
 import routes from '../../routes.js';
 import { useAuth, useNotify } from '../../hooks/index.js';
 
 import getLogger from '../../lib/logger.js';
+
 const log = getLogger('client');
 log.enabled = true;
 
@@ -33,7 +34,7 @@ const Task = () => {
         if (e.response?.status === 401) {
           const from = { pathname: routes.loginPagePath() };
           navigate(from);
-          notify.addErrors([ { defaultMessage: t('Доступ запрещён! Пожалуйста, авторизируйтесь.') } ]);
+          notify.addErrors([{ defaultMessage: t('Доступ запрещён! Пожалуйста, авторизируйтесь.') }]);
         } else if (e.response?.status === 422 && Array.isArray(e.response?.data)) {
           notify.addErrors(e.response?.data);
         } else {
@@ -45,17 +46,18 @@ const Task = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const removeTask = async (id) => {
+  const removeTask = async (event, id) => {
+    event.preventDefault();
     try {
       await axios.delete(`${routes.apiTasks()}/${id}`, { headers: auth.getAuthHeader() });
-      const from = { pathname: routes.homePagePath() };
+      const from = { pathname: routes.tasksPagePath() };
       navigate(from);
-      notify.addMessage(t('Задача удалена'));
+      notify.addMessage(t('taskRemoved'));
     } catch (e) {
       if (e.response?.status === 401) {
         const from = { pathname: routes.loginPagePath() };
         navigate(from);
-        notify.addErrors([ { defaultMessage: t('Доступ запрещён! Пожалуйста, авторизируйтесь.') } ]);
+        notify.addErrors([{ defaultMessage: t('Доступ запрещён! Пожалуйста, авторизируйтесь.') }]);
       } else if (e.response?.status === 403) {
         notify.addErrors([{ defaultMessage: t('Задачу может удалить только её автор') }]);
       } else if (e.response?.status === 422 && Array.isArray(e.response?.data)) {
@@ -64,7 +66,7 @@ const Task = () => {
         notify.addErrors([{ defaultMessage: e.message }]);
       }
     }
-  }
+  };
 
   return (
     <Card>
@@ -95,7 +97,7 @@ const Task = () => {
               {t('status')}
             </Col>
             <Col>
-              {task.state?.name}
+              {task.taskStatus?.name}
             </Col>
           </Row>
           <Row>
@@ -108,16 +110,17 @@ const Task = () => {
           </Row>
           <Row>
             <Col>
-              {t('labels')}:
+              {t('labels')}
+              :
               <ul>
-                {task?.labels?.map((label) => (<li>{label.name}</li>))}
+                {task?.labels?.map((label) => (<li key={label.id}>{label.name}</li>))}
               </ul>
             </Col>
           </Row>
           <Row>
             <Col>
               <Link to={`${routes.tasksPagePath()}/${task.id}/edit`}>{t('edit')}</Link>
-              <Form onSubmit={() => removeTask(task.id)}>
+              <Form onSubmit={(e) => removeTask(e, task.id)}>
                 <Button type="submit" variant="link">Удалить</Button>
               </Form>
             </Col>

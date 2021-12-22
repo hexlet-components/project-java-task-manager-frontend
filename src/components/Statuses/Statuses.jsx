@@ -4,8 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Table, Form, Button } from 'react-bootstrap';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
-import { Link } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 
 import { useAuth, useNotify } from '../../hooks/index.js';
 import routes from '../../routes.js';
@@ -22,11 +21,11 @@ const Statuses = () => {
       try {
         const { data } = await axios.get(routes.apiStatuses(), { headers: auth.getAuthHeader() });
         setStatuses(data);
-      } catch(e) {
+      } catch (e) {
         if (e.response?.status === 401) {
           const from = { pathname: routes.loginPagePath() };
           navigate(from);
-          notify.addErrors([ { defaultMessage: t('Доступ запрещён! Пожалуйста, авторизируйтесь.') } ]);
+          notify.addErrors([{ defaultMessage: t('Доступ запрещён! Пожалуйста, авторизируйтесь.') }]);
         } else if (e.response?.status === 422) {
           notify.addErrors(e.response?.data);
         } else {
@@ -48,7 +47,7 @@ const Statuses = () => {
       if (e.response?.status === 401) {
         const from = { pathname: routes.loginPagePath() };
         navigate(from);
-        notify.addErrors([ { defaultMessage: t('Доступ запрещён! Пожалуйста, авторизируйтесь.') } ]);
+        notify.addErrors([{ defaultMessage: t('Доступ запрещён! Пожалуйста, авторизируйтесь.') }]);
       } else if (e.response?.status === 422 && e.response?.data) {
         notify.addErrors(e.response?.data);
       } else {

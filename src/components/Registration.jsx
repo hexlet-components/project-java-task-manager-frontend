@@ -8,10 +8,11 @@ import axios from 'axios';
 import * as yup from 'yup';
 import { useNavigate } from 'react-router-dom';
 
-import { useAuth, useNotify } from '../hooks/index.js';
+import { useNotify } from '../hooks/index.js';
 import routes from '../routes.js';
 
 import getLogger from '../lib/logger.js';
+
 const log = getLogger('registration');
 log.enabled = true;
 
@@ -19,7 +20,6 @@ const getValidationSchema = () => yup.object().shape({});
 
 const Registration = () => {
   const { t } = useTranslation();
-  const auth = useAuth();
   const notify = useNotify();
   const navigate = useNavigate();
 
@@ -49,7 +49,8 @@ const Registration = () => {
         if (e.response?.status === 400) {
           notify.addErrors([{ defaultMessage: t('registrationFail') }]);
         } else if (e.response?.status === 422 && Array.isArray(e.response?.data)) {
-          const errors = e.response?.data.reduce((acc, err) => ({ ...acc, [err.field]: err.defaultMessage }), {});
+          const errors = e.response?.data
+            .reduce((acc, err) => ({ ...acc, [err.field]: err.defaultMessage }), {});
           log('validation errors', errors);
           setErrors(errors);
         } else {
