@@ -4,13 +4,11 @@ import React, { useState } from 'react';
 import {
   BrowserRouter as Router,
 } from 'react-router-dom';
+import _ from 'lodash';
 import i18next from 'i18next';
 import { I18nextProvider, initReactI18next } from 'react-i18next';
+import { createBrowserHistory } from 'history';
 import { NotificationContext } from './contexts/index.js';
-
-import { createBrowserHistory } from 'history'
-
-
 
 import App from './components/App.jsx';
 import resources from './locales/index.js';
@@ -33,19 +31,21 @@ const app = async () => {
     const [messages, setMessages] = useState([]);
 
     const addErrors = (currentErrors) => {
-      const errors = currentErrors.map((err) => ({ ...err, type: 'danger' }));
+      const errors = currentErrors.map((err) => ({ id: _.uniqueId(), ...err, type: 'danger' }));
       // TODO: этот костыль с setTimeout уйдёт когда переделаю на редакс
       setTimeout(() => {
         setMessages(errors);
       });
     };
 
-    const addMessage = (name) => setTimeout(() => setMessages([ { defaultMessage: name, type: 'info' } ]));
+    const addMessage = (name) => setTimeout(() => setMessages([{ id: _.uniqueId(), defaultMessage: name, type: 'info' }]));
 
     const clean = () => setMessages([]);
 
     return (
-      <NotificationContext.Provider value={{ addMessage, addErrors, messages, clean }}
+      <NotificationContext.Provider value={{
+        addMessage, addErrors, messages, clean,
+      }}
       >
         {children}
       </NotificationContext.Provider>

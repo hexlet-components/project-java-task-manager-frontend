@@ -5,14 +5,14 @@ import { useTranslation } from 'react-i18next';
 import { Form, Button } from 'react-bootstrap';
 import { useFormik } from 'formik';
 import * as yup from 'yup';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
 
 import routes from '../../routes.js';
 import { useAuth, useNotify } from '../../hooks/index.js';
 
 import getLogger from '../../lib/logger.js';
+
 const log = getLogger('client');
 
 const getValidationSchema = () => yup.object().shape({});
@@ -34,7 +34,7 @@ const EditLabel = () => {
         if (e.response?.status === 401) {
           const from = { pathname: routes.loginPagePath() };
           navigate(from);
-          notify.addErrors([ { defaultMessage: t('Доступ запрещён! Пожалуйста, авторизируйтесь.') } ]);
+          notify.addErrors([{ defaultMessage: t('Доступ запрещён! Пожалуйста, авторизируйтесь.') }]);
         } else {
           notify.addErrors([{ defaultMessage: e.message }]);
         }
@@ -51,10 +51,10 @@ const EditLabel = () => {
     },
     validationSchema: getValidationSchema(),
     onSubmit: async ({ name }, { setSubmitting, setErrors }) => {
-      const label = { name };
+      const newLabel = { name };
       try {
         log('label.edit', label);
-        await axios.put(`${routes.apiLabels()}/${params.labelId}`, label, { headers: auth.getAuthHeader() });
+        await axios.put(`${routes.apiLabels()}/${params.labelId}`, newLabel, { headers: auth.getAuthHeader() });
         const from = { pathname: routes.labelsPagePath() };
         navigate(from);
         notify.addMessage(t('labelEdited'));
@@ -65,9 +65,10 @@ const EditLabel = () => {
         if (e.response?.status === 401) {
           const from = { pathname: routes.labelsPagePath() };
           navigate(from);
-          notify.addErrors([ { defaultMessage: t('Доступ запрещён! Пожалуйста, авторизируйтесь.') } ]);
+          notify.addErrors([{ defaultMessage: t('Доступ запрещён! Пожалуйста, авторизируйтесь.') }]);
         } else if (e.response?.status === 422) {
-          const errors = e.response?.data.reduce((acc, err) => ({ ...acc, [err.field]: err.defaultMessage }), {});
+          const errors = e.response?.data
+            .reduce((acc, err) => ({ ...acc, [err.field]: err.defaultMessage }), {});
           setErrors(errors);
         } else {
           notify.addErrors([{ defaultMessage: e.message }]);
@@ -93,7 +94,8 @@ const EditLabel = () => {
             isInvalid={f.errors.name && f.touched.name}
             name="name"
             id="name"
-            type="text" />
+            type="text"
+          />
           <Form.Control.Feedback type="invalid">
             {t(f.errors.name)}
           </Form.Control.Feedback>

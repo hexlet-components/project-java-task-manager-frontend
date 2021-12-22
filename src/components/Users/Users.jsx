@@ -4,13 +4,13 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Table, Form, Button } from 'react-bootstrap';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
-import { Link } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 
 import { useAuth, useNotify } from '../../hooks/index.js';
 import routes from '../../routes.js';
 
 import getLogger from '../../lib/logger.js';
+
 const log = getLogger('user');
 log.enabled = true;
 
@@ -29,7 +29,7 @@ const Users = () => {
         if (e.response?.status === 401) {
           const from = { pathname: routes.loginPagePath() };
           navigate(from);
-          notify.addErrors([ { defaultMessage: t('Доступ запрещён! Пожалуйста, авторизируйтесь.') } ]);
+          notify.addErrors([{ defaultMessage: t('Доступ запрещён! Пожалуйста, авторизируйтесь.') }]);
         } else if (e.response?.status === 422 && Array.isArray(e.response?.data)) {
           notify.addErrors(e.response?.data);
         } else {
@@ -68,7 +68,7 @@ const Users = () => {
           <th>{t('fullName')}</th>
           <th>{t('email')}</th>
           <th>{t('createDate')}</th>
-          <th></th>
+          <th>{null}</th>
         </tr>
       </thead>
       <tbody>

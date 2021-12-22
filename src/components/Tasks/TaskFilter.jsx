@@ -5,13 +5,15 @@ import axios from 'axios';
 import { useFormik } from 'formik';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { Card, Button, Col, Form, Row } from 'react-bootstrap';
+import {
+  Card, Button, Col, Form, Row,
+} from 'react-bootstrap';
 
 import { useAuth, useNotify } from '../../hooks/index.js';
 import routes from '../../routes.js';
 
 const TaskFilter = (props) => {
-  const handler = props.foundTasks;
+  const { foundTasks: handler } = props;
   const auth = useAuth();
   const navigate = useNavigate();
   const { t } = useTranslation();
@@ -42,11 +44,11 @@ const TaskFilter = (props) => {
           labels: labelsData ?? [],
           statuses: statusesData ?? [],
         });
-      } catch(e) {
+      } catch (e) {
         if (e.response?.status === 401) {
           const from = { pathname: routes.loginPagePath() };
           navigate(from);
-          notify.addErrors([ { defaultMessage: t('Доступ запрещён! Пожалуйста, авторизируйтесь.') } ]);
+          notify.addErrors([{ defaultMessage: t('Доступ запрещён! Пожалуйста, авторизируйтесь.') }]);
         } else if (e.response?.status === 422 && e.response?.data) {
           notify.addErrors(e.response?.data);
         } else {
@@ -84,9 +86,9 @@ const TaskFilter = (props) => {
           params.label = formData.label;
         }
 
-        const { data } = await axios.get(`${routes.apiTasks()}/by`, { params, headers: auth.getAuthHeader() });
+        const { data: response } = await axios.get(`${routes.apiTasks()}/by`, { params, headers: auth.getAuthHeader() });
 
-        handler(data);
+        handler(response);
         // dispatch(actions.addTask(task));
         // auth.logIn(formData);
         // const { from } = location.state || { from: { pathname: routes.homePagePath() } };
@@ -96,13 +98,12 @@ const TaskFilter = (props) => {
         if (e.response?.status === 401) {
           const from = { pathname: routes.loginPagePath() };
           navigate(from);
-          notify.addErrors([ { defaultMessage: t('Доступ запрещён! Пожалуйста, авторизируйтесь.') } ]);
+          notify.addErrors([{ defaultMessage: t('Доступ запрещён! Пожалуйста, авторизируйтесь.') }]);
         } else if (e.response?.status === 422) {
           notify.addErrors(e.response?.data);
         } else {
           notify.addErrors([{ defaultMessage: e.message }]);
         }
-
       }
     },
     validateOnBlur: false,
@@ -126,8 +127,12 @@ const TaskFilter = (props) => {
                   isInvalid={f.errors.status && f.touched.status}
                   name="status"
                 >
-                  <option value=""></option>
-                  {statuses.map((status) => <option key={status.id} value={status.id}>{status.name}</option>)}
+                  <option value="">{null}</option>
+                  {statuses.map((status) => (
+                    <option key={status.id} value={status.id}>
+                      {status.name}
+                    </option>
+                  ))}
                 </Form.Select>
               </Form.Group>
             </Col>
@@ -143,8 +148,12 @@ const TaskFilter = (props) => {
                   isInvalid={f.errors.executor && f.touched.executor}
                   name="executor"
                 >
-                  <option value=""></option>
-                  {executors.map((executor) => <option key={executor.id} value={executor.id}>{`${executor.firstName} ${executor.lastName}`}</option>)}
+                  <option value="">{null}</option>
+                  {executors.map((executor) => (
+                    <option key={executor.id} value={executor.id}>
+                      {`${executor.firstName} ${executor.lastName}`}
+                    </option>
+                  ))}
                 </Form.Select>
               </Form.Group>
             </Col>
@@ -160,8 +169,10 @@ const TaskFilter = (props) => {
                   isInvalid={f.errors.label && f.touched.label}
                   name="label"
                 >
-                  <option value=""></option>
-                  {labels.map((label) => <option key={label.id} value={label.id}>{label.name}</option>)}
+                  <option value="">{null}</option>
+                  {labels.map((label) => (
+                    <option key={label.id} value={label.id}>{label.name}</option>
+                  ))}
                 </Form.Select>
               </Form.Group>
             </Col>

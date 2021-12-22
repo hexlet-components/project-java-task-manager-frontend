@@ -12,6 +12,7 @@ import routes from '../../routes.js';
 import { useAuth, useNotify } from '../../hooks/index.js';
 
 import getLogger from '../../lib/logger.js';
+
 const log = getLogger('client');
 
 const getValidationSchema = () => yup.object().shape({});
@@ -44,9 +45,10 @@ const NewLabel = () => {
         if (e.response?.status === 401) {
           const from = { pathname: routes.loginPagePath() };
           navigate(from);
-          notify.addErrors([ { defaultMessage: t('Доступ запрещён! Пожалуйста, авторизируйтесь.') } ]);
+          notify.addErrors([{ defaultMessage: t('Доступ запрещён! Пожалуйста, авторизируйтесь.') }]);
         } else if (e.response?.status === 422 && e.response?.data) {
-          const errors = e.response?.data.reduce((acc, err) => ({ ...acc, [err.field]: err.defaultMessage }), {});
+          const errors = e.response?.data
+            .reduce((acc, err) => ({ ...acc, [err.field]: err.defaultMessage }), {});
           setErrors(errors);
         } else {
           notify.addErrors([{ defaultMessage: e.message }]);
@@ -72,7 +74,8 @@ const NewLabel = () => {
             isInvalid={f.errors.name && f.touched.name}
             name="name"
             id="name"
-            type="text" />
+            type="text"
+          />
           <Form.Control.Feedback type="invalid">
             {t(f.errors.name)}
           </Form.Control.Feedback>

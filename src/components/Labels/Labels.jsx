@@ -4,8 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Table, Form, Button } from 'react-bootstrap';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
-import { Link } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 
 import { useAuth, useNotify } from '../../hooks/index.js';
 import routes from '../../routes.js';
@@ -21,11 +20,11 @@ const Labels = () => {
       try {
         const { data } = await axios.get(routes.apiLabels(), { headers: auth.getAuthHeader() });
         setLabels(data);
-      } catch(e) {
+      } catch (e) {
         if (e.response?.status === 401) {
           const from = { pathname: routes.loginPagePath() };
           navigate(from);
-          notify.addErrors([ { defaultMessage: t('Доступ запрещён! Пожалуйста, авторизируйтесь.') } ]);
+          notify.addErrors([{ defaultMessage: t('Доступ запрещён! Пожалуйста, авторизируйтесь.') }]);
         } else {
           notify.addErrors([{ defaultMessage: e.message }]);
         }
@@ -41,11 +40,11 @@ const Labels = () => {
       await axios.delete(`${routes.apiLabels()}/${id}`, { headers: auth.getAuthHeader() });
       setLabels(labels.filter((label) => label.id !== id));
       notify.addMessage(t('labelRemoved'));
-    } catch(e) {
+    } catch (e) {
       if (e.response?.status === 401) {
         const from = { pathname: routes.loginPagePath() };
         navigate(from);
-        notify.addErrors([ { defaultMessage: t('Доступ запрещён! Пожалуйста, авторизируйтесь.') } ]);
+        notify.addErrors([{ defaultMessage: t('Доступ запрещён! Пожалуйста, авторизируйтесь.') }]);
       } else {
         notify.addErrors([{ defaultMessage: e.message }]);
       }

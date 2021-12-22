@@ -6,13 +6,13 @@ import { Form, Button } from 'react-bootstrap';
 import { useFormik } from 'formik';
 import axios from 'axios';
 import * as yup from 'yup';
-import { useNavigate } from 'react-router-dom';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
 import { useAuth, useNotify } from '../../hooks/index.js';
 import routes from '../../routes.js';
 
 import getLogger from '../../lib/logger.js';
+
 const log = getLogger('registration');
 log.enabled = true;
 
@@ -36,7 +36,7 @@ const Registration = () => {
         if (e.response?.status === 401) {
           const from = { pathname: routes.loginPagePath() };
           navigate(from);
-          notify.addErrors([ { defaultMessage: t('Доступ запрещён! Пожалуйста, авторизируйтесь.') } ]);
+          notify.addErrors([{ defaultMessage: t('Доступ запрещён! Пожалуйста, авторизируйтесь.') }]);
         } else if (e.response?.status === 422 && Array.isArray(e.response?.data)) {
           notify.addErrors(e.response?.data);
         } else {
@@ -59,11 +59,12 @@ const Registration = () => {
     validationSchema: getValidationSchema(),
     onSubmit: async (userData, { setSubmitting, setErrors }) => {
       try {
-        const user = {
+        const newUser = {
           ...userData,
         };
         log('create', user);
-        const { data } = await axios.post(routes.apiUsers(), user, { headers: auth.getAuthHeader() });
+        const { data } = await axios
+          .post(routes.apiUsers(), newUser, { headers: auth.getAuthHeader() });
 
         auth.logIn(data);
 
@@ -78,14 +79,14 @@ const Registration = () => {
         if (e.response?.status === 401) {
           const from = { pathname: routes.loginPagePath() };
           navigate(from);
-          notify.addErrors([ { defaultMessage: t('Доступ запрещён! Пожалуйста, авторизируйтесь.') } ]);
+          notify.addErrors([{ defaultMessage: t('Доступ запрещён! Пожалуйста, авторизируйтесь.') }]);
         } else if (e.response?.status === 422 && Array.isArray(e.response?.data)) {
-          const errors = e.response?.data.reduce((acc, err) => ({ ...acc, [err.field]: err.defaultMessage }), {});
+          const errors = e.response?.data
+            .reduce((acc, err) => ({ ...acc, [err.field]: err.defaultMessage }), {});
           setErrors(errors);
         } else {
           notify.addErrors([{ defaultMessage: e.message }]);
         }
-
       }
     },
     validateOnBlur: false,
@@ -161,7 +162,7 @@ const Registration = () => {
         </Form.Group>
 
         <Button variant="primary" type="submit">
-          Submit
+          {t('edit')}
         </Button>
       </Form>
     </>
