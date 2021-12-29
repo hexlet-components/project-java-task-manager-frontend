@@ -71,7 +71,8 @@ const TaskFilter = (props) => {
       try {
         const params = {};
         if (formData.isMyTasks) {
-          params.authorId = auth.user.id;
+          const author = executors.find((user) => user.email === auth?.user?.email);
+          params.authorId = author.id;
         }
 
         if (formData.taskStatusId) {
