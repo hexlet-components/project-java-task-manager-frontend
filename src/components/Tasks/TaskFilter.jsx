@@ -62,9 +62,9 @@ const TaskFilter = (props) => {
 
   const f = useFormik({
     initialValues: {
-      status: null,
-      executor: null,
-      label: null,
+      taskStatusId: null,
+      executorId: null,
+      labelId: null,
       isMyTasks: false,
     },
     onSubmit: async (formData, { setSubmitting }) => {
@@ -74,25 +74,21 @@ const TaskFilter = (props) => {
           params.authorId = auth.user.id;
         }
 
-        if (formData.status) {
-          params.state = formData.status;
+        if (formData.taskStatusId) {
+          params.taskStatus = formData.taskStatusId;
         }
 
-        if (formData.executor) {
-          params.executor = formData.executor;
+        if (formData.executorId) {
+          params.executorId = formData.executorId;
         }
 
-        if (formData.label) {
-          params.label = formData.label;
+        if (formData.labelId) {
+          params.labels = formData.labelId;
         }
 
         const { data: response } = await axios.get(`${routes.apiTasks()}/by`, { params, headers: auth.getAuthHeader() });
 
         handler(response);
-        // dispatch(actions.addTask(task));
-        // auth.logIn(formData);
-        // const { from } = location.state || { from: { pathname: routes.homePagePath() } };
-        // navigate(from);
       } catch (e) {
         setSubmitting(false);
         if (e.response?.status === 401) {
@@ -116,16 +112,16 @@ const TaskFilter = (props) => {
         <Form onSubmit={f.handleSubmit}>
           <Row className="g-2">
             <Col md>
-              <Form.Group className="mb-3" controlId="status">
+              <Form.Group className="mb-3" controlId="taskStatusId">
                 <Form.Label>{t('status')}</Form.Label>
                 <Form.Select
                   nullable
-                  value={f.values.status}
+                  value={f.values.taskStatusId}
                   disabled={f.isSubmitting}
                   onChange={f.handleChange}
                   onBlur={f.handleBlur}
-                  isInvalid={f.errors.status && f.touched.status}
-                  name="status"
+                  isInvalid={f.errors.taskStatusId && f.touched.taskStatusId}
+                  name="taskStatusId"
                 >
                   <option value="">{null}</option>
                   {statuses.map((status) => (
@@ -137,16 +133,16 @@ const TaskFilter = (props) => {
               </Form.Group>
             </Col>
             <Col md>
-              <Form.Group className="mb-3" controlId="executor">
+              <Form.Group className="mb-3" controlId="executorId">
                 <Form.Label>{t('executor')}</Form.Label>
                 <Form.Select
                   nullable
-                  value={f.values.executor}
+                  value={f.values.executorId}
                   disabled={f.isSubmitting}
                   onChange={f.handleChange}
                   onBlur={f.handleBlur}
-                  isInvalid={f.errors.executor && f.touched.executor}
-                  name="executor"
+                  isInvalid={f.errors.executorId && f.touched.executorId}
+                  name="executorId"
                 >
                   <option value="">{null}</option>
                   {executors.map((executor) => (
@@ -158,16 +154,16 @@ const TaskFilter = (props) => {
               </Form.Group>
             </Col>
             <Col md>
-              <Form.Group className="mb-3" controlId="label">
+              <Form.Group className="mb-3" controlId="labelId">
                 <Form.Label>{t('label')}</Form.Label>
                 <Form.Select
                   nullable
-                  value={f.values.label}
+                  value={f.values.labelId}
                   disabled={f.isSubmitting}
                   onChange={f.handleChange}
                   onBlur={f.handleBlur}
-                  isInvalid={f.errors.label && f.touched.label}
-                  name="label"
+                  isInvalid={f.errors.labelId && f.touched.labelId}
+                  name="labelId"
                 >
                   <option value="">{null}</option>
                   {labels.map((label) => (
