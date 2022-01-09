@@ -13,12 +13,12 @@ import routes from '../../routes.js';
 
 import getLogger from '../../lib/logger.js';
 
-const log = getLogger('registration');
+const log = getLogger('edit user');
 log.enabled = true;
 
 const getValidationSchema = () => yup.object().shape({});
 
-const Registration = () => {
+const EditUser = () => {
   const { t } = useTranslation();
   const auth = useAuth();
   const navigate = useNavigate();
@@ -62,19 +62,14 @@ const Registration = () => {
         const newUser = {
           ...userData,
         };
-        log('create', user);
-        const { data } = await axios
-          .post(routes.apiUsers(), newUser, { headers: auth.getAuthHeader() });
-
-        auth.logIn(data);
-
-        log('data:', data);
-        const from = { pathname: routes.homePagePath() };
+        log('user.edit', newUser);
+        await axios.put(`${routes.apiUsers()}/${params.userId}`, newUser, { headers: auth.getAuthHeader() });
+        const from = { pathname: routes.usersPagePath() };
         navigate(from);
-        notify.addMessage(t('registrationSuccess'));
+        notify.addMessage(t('userEdited'));
         // dispatch(actions.addTask(task));
       } catch (e) {
-        log('create.error', e);
+        log('user.edit.error', e);
         setSubmitting(false);
         if (e.response?.status === 401) {
           const from = { pathname: routes.loginPagePath() };
@@ -95,7 +90,7 @@ const Registration = () => {
 
   return (
     <>
-      <h1 className="my-4">{t('signup')}</h1>
+      <h1 className="my-4">{t('userEdit')}</h1>
       <Form onSubmit={f.handleSubmit}>
         <Form.Group className="mb-3" controlId="firstName">
           <Form.Label>{t('name')}</Form.Label>
@@ -169,4 +164,4 @@ const Registration = () => {
   );
 };
 
-export default Registration;
+export default EditUser;

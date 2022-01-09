@@ -56,6 +56,8 @@ const ru = {
     taskCreated: 'Задача создана',
     firstName: 'Имя',
     lastName: 'Фамилия',
+    userEdit: 'Изменение пользователя',
+    userEdited: 'Пользователь изменен',
     userDeleteDenied: 'Вы не можете редактировать или удалять другого пользователя',
     userDeleted: 'Пользователь удалён',
     taskEdited: 'Задача отредактирована',
