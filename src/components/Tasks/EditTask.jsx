@@ -33,35 +33,39 @@ const EditTask = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    const errorHandler = (e) => {
+      if (e.response?.status === 401) {
+        const from = { pathname: routes.loginPagePath() };
+        navigate(from);
+        notify.addErrors([{ defaultMessage: t('Доступ запрещён! Пожалуйста, авторизируйтесь.') }]);
+      } else if (e.response?.status === 422 && Array.isArray(e.response?.data)) {
+        notify.addErrors(e.response?.data);
+      } else {
+        notify.addErrors([{ defaultMessage: e.message }]);
+      }
+    };
+
     const fetchData = async () => {
       try {
         const [
           { data: currentTaskData },
           { data: executorsData },
-          { data: labelsData },
+          labelsData,
           { data: statusesData },
         ] = await Promise.all([
           axios.get(`${routes.apiTasks()}/${params.taskId}`, { headers: auth.getAuthHeader() }),
           axios.get(routes.apiUsers(), { headers: auth.getAuthHeader() }),
-          axios.get(routes.apiLabels(), { headers: auth.getAuthHeader() }),
+          axios.get(routes.apiLabels(), { headers: auth.getAuthHeader() }).catch(errorHandler),
           axios.get(routes.apiStatuses(), { headers: auth.getAuthHeader() }),
         ]);
         setTaskData({
           task: currentTaskData,
           executors: executorsData,
-          labels: labelsData,
+          labels: labelsData ? labelsData.data : [],
           statuses: statusesData,
         });
       } catch (e) {
-        if (e.response?.status === 401) {
-          const from = { pathname: routes.loginPagePath() };
-          navigate(from);
-          notify.addErrors([{ defaultMessage: t('Доступ запрещён! Пожалуйста, авторизируйтесь.') }]);
-        } else if (e.response?.status === 422 && Array.isArray(e.response?.data)) {
-          notify.addErrors(e.response?.data);
-        } else {
-          notify.addErrors([{ defaultMessage: e.message }]);
-        }
+        errorHandler(e);
       }
     };
     fetchData();
