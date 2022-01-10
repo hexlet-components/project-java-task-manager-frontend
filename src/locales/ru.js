@@ -34,6 +34,7 @@ const ru = {
     createLabel: 'Создать метку',
     taskCreating: 'Создание задачи',
     labelCreating: 'Создание метки',
+    labelRemoved: 'Метка удалена',
     description: 'Описание',
     create: 'Создать',
     edit: 'Изменить',
