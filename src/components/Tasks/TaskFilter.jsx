@@ -91,7 +91,8 @@ const TaskFilter = (props) => {
           params.labels = formData.labelId;
         }
 
-        const { data: response } = await axios.get(`${routes.apiTasks()}/by`, { params, headers: auth.getAuthHeader() });
+        const { data: response } = await axios
+          .get(routes.apiTasks(), { params, headers: auth.getAuthHeader() });
 
         handler(response);
       } catch (e) {
