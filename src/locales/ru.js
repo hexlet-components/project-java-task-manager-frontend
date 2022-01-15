@@ -63,6 +63,9 @@ const ru = {
     userDeleted: 'Пользователь удалён',
     taskEdited: 'Задача отредактирована',
     taskRemoved: 'Задача удалена',
+    enter: 'Войти',
+    tasksStatusId: 'Статус',
+    statusName: 'Наименование',
   },
 };
 
