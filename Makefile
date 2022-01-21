@@ -1,11 +1,8 @@
 install:
-	npm ci
+	npm install
 
 start:
 	npm start
 
 lint:
 	npm run lint
-
-test:
-	echo "no tests"

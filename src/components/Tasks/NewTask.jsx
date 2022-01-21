@@ -1,15 +1,18 @@
 // @ts-check
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
+import { useHistory } from 'react-router-dom';
+import { useSelector, useDispatch } from 'react-redux';
 import { useTranslation } from 'react-i18next';
 import { Form, Button } from 'react-bootstrap';
 import { useFormik } from 'formik';
 import * as yup from 'yup';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
 
+import { actions as tasksActions } from '../../slices/tasksSlice.js';
 import routes from '../../routes.js';
 import { useAuth, useNotify } from '../../hooks/index.js';
+import handleError from '../../utils.js';
 
 import getLogger from '../../lib/logger.js';
 
@@ -20,57 +23,15 @@ const getValidationSchema = () => yup.object().shape({});
 
 const NewTask = () => {
   const { t } = useTranslation();
-  // const dispatch = useDispatch();
+  const dispatch = useDispatch();
 
-  const navigate = useNavigate();
-  const [data, setData] = useState({ executors: [], labels: [], statuses: [] });
-  const {
-    executors,
-    labels,
-    statuses,
-  } = data;
+  const history = useHistory();
+  const executors = useSelector((state) => state.users?.users);
+  const labels = useSelector((state) => state.labels?.labels);
+  const taskStatuses = useSelector((state) => state.taskStatuses?.taskStatuses);
 
   const auth = useAuth();
   const notify = useNotify();
-
-  useEffect(() => {
-    const errorHandler = (e) => {
-      if (e.response?.status === 401) {
-        const from = { pathname: routes.loginPagePath() };
-        navigate(from);
-        notify.addErrors([{ defaultMessage: t('Доступ запрещён! Пожалуйста, авторизируйтесь.') }]);
-      } else if (e.response?.status === 422 && Array.isArray(e.response?.data)) {
-        notify.addErrors(e.response?.data);
-      } else {
-        notify.addErrors([{ defaultMessage: e.message }]);
-      }
-    };
-
-    const fetchData = async () => {
-      try {
-        const promises = [
-          axios.get(routes.apiUsers(), { headers: auth.getAuthHeader() }),
-          axios.get(routes.apiLabels(), { headers: auth.getAuthHeader() }).catch(errorHandler),
-          axios.get(routes.apiStatuses(), { headers: auth.getAuthHeader() }),
-        ];
-        const [
-          { data: executorsData },
-          labelsData,
-          { data: statusesData },
-        ] = await Promise.all(promises);
-
-        setData({
-          executors: executorsData,
-          labels: labelsData ? labelsData.data : [],
-          statuses: statusesData,
-        });
-      } catch (e) {
-        errorHandler(e);
-      }
-    };
-    fetchData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   const f = useFormik({
     initialValues: {
@@ -90,25 +51,20 @@ const NewTask = () => {
           taskStatusId: parseInt(taskData.taskStatusId, 10),
           labelIds: taskData.labelIds.map((id) => parseInt(id, 10)),
         };
-        const response = await axios
+        const { data } = await axios
           .post(routes.apiTasks(), requestTask, { headers: auth.getAuthHeader() });
-        log('task.create', response);
+        log('task.create', data);
+        dispatch(tasksActions.addTask(data));
         const from = { pathname: routes.tasksPagePath() };
-        navigate(from);
-        notify.addMessage(t('taskCreated'));
+        history.push(from, { message: 'taskCreated' });
       } catch (e) {
         log('task.create.error', e);
         setSubmitting(false);
-        if (e.response?.status === 401) {
-          const from = { pathname: routes.loginPagePath() };
-          navigate(from);
-          notify.addErrors([{ defaultMessage: t('Доступ запрещён! Пожалуйста, авторизируйтесь.') }]);
-        } else if (e.response?.status === 422 && Array.isArray(e.response?.data)) {
+        handleError(e, notify, history, auth);
+        if (e.response?.status === 422 && Array.isArray(e.response?.data)) {
           const errors = e.response?.data
             .reduce((acc, err) => ({ ...acc, [err.field]: err.defaultMessage }), {});
           setErrors(errors);
-        } else {
-          notify.addErrors([{ defaultMessage: e.message }]);
         }
       }
     },
@@ -120,8 +76,8 @@ const NewTask = () => {
     <>
       <h1 className="my-4">{t('taskCreating')}</h1>
       <Form onSubmit={f.handleSubmit}>
-        <Form.Group className="mb-3" controlId="name">
-          <Form.Label>{t('naming')}</Form.Label>
+        <Form.Group className="mb-3">
+          <Form.Label htmlFor="name">{t('naming')}</Form.Label>
           <Form.Control
             type="text"
             value={f.values.name}
@@ -129,6 +85,7 @@ const NewTask = () => {
             onChange={f.handleChange}
             onBlur={f.handleBlur}
             isInvalid={f.errors.name && f.touched.name}
+            id="name"
             name="name"
           />
           <Form.Control.Feedback type="invalid">
@@ -136,8 +93,8 @@ const NewTask = () => {
           </Form.Control.Feedback>
         </Form.Group>
 
-        <Form.Group className="mb-3" controlId="description">
-          <Form.Label>{t('description')}</Form.Label>
+        <Form.Group className="mb-3">
+          <Form.Label htmlFor="description">{t('description')}</Form.Label>
           <Form.Control
             as="textarea"
             rows={3}
@@ -146,6 +103,7 @@ const NewTask = () => {
             onChange={f.handleChange}
             onBlur={f.handleBlur}
             isInvalid={f.errors.description && f.touched.description}
+            id="description"
             name="description"
           />
           <Form.Control.Feedback type="invalid">
@@ -153,8 +111,8 @@ const NewTask = () => {
           </Form.Control.Feedback>
         </Form.Group>
 
-        <Form.Group className="mb-3" controlId="taskStatusId">
-          <Form.Label>{t('status')}</Form.Label>
+        <Form.Group className="mb-3">
+          <Form.Label htmlFor="taskStatusId">{t('status')}</Form.Label>
           <Form.Select
             nullable
             value={f.values.taskStatusId}
@@ -162,10 +120,11 @@ const NewTask = () => {
             onChange={f.handleChange}
             onBlur={f.handleBlur}
             isInvalid={f.errors.taskStatusId && f.touched.taskStatusId}
+            id="taskStatusId"
             name="taskStatusId"
           >
             <option value="">{null}</option>
-            {statuses
+            {taskStatuses
               .map((status) => <option key={status.id} value={status.id}>{status.name}</option>)}
           </Form.Select>
           <Form.Control.Feedback type="invalid">
@@ -173,14 +132,16 @@ const NewTask = () => {
           </Form.Control.Feedback>
         </Form.Group>
 
-        <Form.Group className="mb-3" controlId="executorId">
-          <Form.Label>{t('executor')}</Form.Label>
+        <Form.Group className="mb-3">
+          <Form.Label htmlFor="executorId">{t('executor')}</Form.Label>
           <Form.Select
+            multiple
             value={f.values.executorId}
             disabled={f.isSubmitting}
             onChange={f.handleChange}
             onBlur={f.handleBlur}
             isInvalid={f.errors.executorId && f.touched.executorId}
+            id="executorId"
             name="executorId"
           >
             <option value="">{null}</option>
@@ -191,8 +152,8 @@ const NewTask = () => {
           </Form.Control.Feedback>
         </Form.Group>
 
-        <Form.Group className="mb-3" controlId="labelIds">
-          <Form.Label>{t('labels')}</Form.Label>
+        <Form.Group className="mb-3">
+          <Form.Label htmlFor="labelIds">{t('labels')}</Form.Label>
           <Form.Select
             multiple
             value={f.values.labelIds}
@@ -200,6 +161,7 @@ const NewTask = () => {
             onChange={f.handleChange}
             onBlur={f.handleBlur}
             isInvalid={f.errors.labelIds && f.touched.labelIds}
+            id="labelIds"
             name="labelIds"
           >
             {labels.map((label) => <option key={label.id} value={label.id}>{label.name}</option>)}

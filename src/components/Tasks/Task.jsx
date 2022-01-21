@@ -1,13 +1,16 @@
 // @ts-check
 
 import React, { useEffect, useState } from 'react';
+import { useDispatch } from 'react-redux';
 import { useTranslation } from 'react-i18next';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, Link, useHistory } from 'react-router-dom';
 import {
   Card, Button, Container, Row, Col, Form,
 } from 'react-bootstrap';
 import axios from 'axios';
 
+import { actions as tasksActions } from '../../slices/tasksSlice.js';
+import handleError from '../../utils.js';
 import routes from '../../routes.js';
 import { useAuth, useNotify } from '../../hooks/index.js';
 
@@ -21,9 +24,10 @@ const Task = () => {
   const params = useParams();
   const auth = useAuth();
   const notify = useNotify();
-  const navigate = useNavigate();
+  const history = useHistory();
+  const dispatch = useDispatch();
 
-  const [task, setTask] = useState({});
+  const [task, setTask] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -31,40 +35,26 @@ const Task = () => {
         const { data: taskData } = await axios.get(`${routes.apiTasks()}/${params.taskId}`, { headers: auth.getAuthHeader() });
         setTask(taskData);
       } catch (e) {
-        if (e.response?.status === 401) {
-          const from = { pathname: routes.loginPagePath() };
-          navigate(from);
-          notify.addErrors([{ defaultMessage: t('Доступ запрещён! Пожалуйста, авторизируйтесь.') }]);
-        } else if (e.response?.status === 422 && Array.isArray(e.response?.data)) {
-          notify.addErrors(e.response?.data);
-        } else {
-          notify.addErrors([{ defaultMessage: e.message }]);
-        }
+        handleError(e, notify, history);
       }
     };
     fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [dispatch]);
+
+  if (!task) {
+    return null;
+  }
 
   const removeTask = async (event, id) => {
     event.preventDefault();
     try {
       await axios.delete(`${routes.apiTasks()}/${id}`, { headers: auth.getAuthHeader() });
+      dispatch(tasksActions.removeTask(id));
       const from = { pathname: routes.tasksPagePath() };
-      navigate(from);
-      notify.addMessage(t('taskRemoved'));
+      history.push(from, { message: 'taskRemoved' });
     } catch (e) {
-      if (e.response?.status === 401) {
-        const from = { pathname: routes.loginPagePath() };
-        navigate(from);
-        notify.addErrors([{ defaultMessage: t('Доступ запрещён! Пожалуйста, авторизируйтесь.') }]);
-      } else if (e.response?.status === 403) {
-        notify.addErrors([{ defaultMessage: t('Задачу может удалить только её автор') }]);
-      } else if (e.response?.status === 422 && Array.isArray(e.response?.data)) {
-        notify.addErrors(e.response?.data);
-      } else {
-        notify.addErrors([{ defaultMessage: e.message }]);
-      }
+      handleError(e, notify, history, auth);
     }
   };
 
