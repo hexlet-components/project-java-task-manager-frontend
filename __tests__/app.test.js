@@ -4,8 +4,8 @@ import 'core-js/stable';
 import 'regenerator-runtime/runtime';
 import '@testing-library/jest-dom';
 
-import userEventLib from '@testing-library/user-event';
-import testingLibrary from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { render, screen, waitFor } from '@testing-library/react';
 import { setupServer } from 'msw/node';
 import { rest } from 'msw';
 
@@ -15,11 +15,7 @@ import getStatuses from '../__fixtures__/statuses.js';
 
 import mocks from '../mocks/mocks.js';
 
-import app from '../src/init.jsx';
-
-const { render, screen, waitFor } = testingLibrary;
-const userEvent = userEventLib.default;
-const init = app.default;
+import init from '../src/init.jsx';
 
 const server = setupServer();
 const user = {
