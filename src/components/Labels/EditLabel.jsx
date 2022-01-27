@@ -1,13 +1,16 @@
 // @ts-check
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useDispatch } from 'react-redux';
 import { useTranslation } from 'react-i18next';
 import { Form, Button } from 'react-bootstrap';
 import { useFormik } from 'formik';
 import * as yup from 'yup';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useHistory } from 'react-router-dom';
 import axios from 'axios';
 
+import { actions as labelsActions } from '../../slices/labelsSlice.js';
+import handleError from '../../utils.js';
 import routes from '../../routes.js';
 import { useAuth, useNotify } from '../../hooks/index.js';
 
@@ -19,11 +22,12 @@ const getValidationSchema = () => yup.object().shape({});
 
 const EditLabel = () => {
   const { t } = useTranslation();
-  const [label, setLabel] = useState({});
   const params = useParams();
-  const navigate = useNavigate();
+  const history = useHistory();
   const auth = useAuth();
   const notify = useNotify();
+  const [label, setLabel] = useState(null);
+  const dispatch = useDispatch();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -31,13 +35,7 @@ const EditLabel = () => {
         const { data } = await axios.get(`${routes.apiLabels()}/${params.labelId}`, { headers: auth.getAuthHeader() });
         setLabel(data);
       } catch (e) {
-        if (e.response?.status === 401) {
-          const from = { pathname: routes.loginPagePath() };
-          navigate(from);
-          notify.addErrors([{ defaultMessage: t('Доступ запрещён! Пожалуйста, авторизируйтесь.') }]);
-        } else {
-          notify.addErrors([{ defaultMessage: e.message }]);
-        }
+        handleError(e, notify, history);
       }
     };
     fetchData();
@@ -47,31 +45,25 @@ const EditLabel = () => {
   const f = useFormik({
     enableReinitialize: true,
     initialValues: {
-      name: label.name,
+      name: label?.name,
     },
     validationSchema: getValidationSchema(),
     onSubmit: async ({ name }, { setSubmitting, setErrors }) => {
       const newLabel = { name };
       try {
         log('label.edit', label);
-        await axios.put(`${routes.apiLabels()}/${params.labelId}`, newLabel, { headers: auth.getAuthHeader() });
+        const { data } = await axios.put(`${routes.apiLabels()}/${params.labelId}`, newLabel, { headers: auth.getAuthHeader() });
+        dispatch(labelsActions.updateLabel(data));
         const from = { pathname: routes.labelsPagePath() };
-        navigate(from);
-        notify.addMessage(t('labelEdited'));
-        // dispatch(actions.addStatus(label));
+        history.push(from, { message: 'labelEdited' });
       } catch (e) {
         log('label.edit.error', e);
         setSubmitting(false);
-        if (e.response?.status === 401) {
-          const from = { pathname: routes.labelsPagePath() };
-          navigate(from);
-          notify.addErrors([{ defaultMessage: t('Доступ запрещён! Пожалуйста, авторизируйтесь.') }]);
-        } else if (e.response?.status === 422) {
+        handleError(e, notify, history, auth);
+        if (e.response?.status === 422 && Array.isArray(e.response?.data)) {
           const errors = e.response?.data
             .reduce((acc, err) => ({ ...acc, [err.field]: err.defaultMessage }), {});
           setErrors(errors);
-        } else {
-          notify.addErrors([{ defaultMessage: e.message }]);
         }
       }
     },
@@ -79,12 +71,16 @@ const EditLabel = () => {
     validateOnChange: false,
   });
 
+  if (!label) {
+    return null;
+  }
+
   return (
     <>
       <h1 className="my-4">{t('labelEdit')}</h1>
       <Form onSubmit={f.handleSubmit}>
         <Form.Group className="mb-3">
-          <Form.Label>{t('naming')}</Form.Label>
+          <Form.Label htmlFor="name">{t('naming')}</Form.Label>
           <Form.Control
             className="mb-2"
             disabled={f.isSubmitting}

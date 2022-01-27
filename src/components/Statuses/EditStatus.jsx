@@ -1,15 +1,18 @@
 // @ts-check
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useDispatch } from 'react-redux';
 import { useTranslation } from 'react-i18next';
 import { Form, Button } from 'react-bootstrap';
 import { useFormik } from 'formik';
 import * as yup from 'yup';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams, useHistory } from 'react-router-dom';
 import axios from 'axios';
 
+import { actions as taskStatusesActions } from '../../slices/taskStatusesSlice.js';
 import routes from '../../routes.js';
 import { useAuth, useNotify } from '../../hooks/index.js';
+import handleError from '../../utils.js';
 
 import getLogger from '../../lib/logger.js';
 
@@ -19,28 +22,22 @@ const getValidationSchema = () => yup.object().shape({});
 
 const EditStatus = () => {
   const { t } = useTranslation();
-  const navigate = useNavigate();
-  const [status, setStatus] = useState({});
+  const history = useHistory();
   const params = useParams();
   const auth = useAuth();
   const notify = useNotify();
-  // const dispatch = useDispatch();
+  const [taskStatus, setTaskStatus] = useState(null);
+  const dispatch = useDispatch();
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const { data } = await axios.get(`${routes.apiStatuses()}/${params.statusId}`, { headers: auth.getAuthHeader() });
-        setStatus(data);
+        const { data } = await axios.get(`${routes.apiStatuses()}/${params.taskStatusId}`, { headers: auth.getAuthHeader() });
+        console.log('DATA: ', data);
+        setTaskStatus(data);
       } catch (e) {
-        if (e.response?.status === 401) {
-          const from = { pathname: routes.loginPagePath() };
-          navigate(from);
-          notify.addErrors([{ defaultMessage: t('Доступ запрещён! Пожалуйста, авторизируйтесь.') }]);
-        } else if (e.response?.status === 422 && e.response?.data) {
-          notify.addErrors(e.response?.data);
-        } else {
-          notify.addErrors([{ defaultMessage: e.message }]);
-        }
+        console.log(e);
+        handleError(e, notify, history, auth);
       }
     };
     fetchData();
@@ -50,32 +47,27 @@ const EditStatus = () => {
   const f = useFormik({
     enableReinitialize: true,
     initialValues: {
-      name: status.name,
+      name: taskStatus?.name,
     },
     validationSchema: getValidationSchema(),
     onSubmit: async ({ name }, { setSubmitting, setErrors }) => {
       const newStatus = { name };
       try {
-        // TODO: api
-        await axios.put(`${routes.apiStatuses()}/${params.statusId}`, newStatus, { headers: auth.getAuthHeader() });
+        const { data } = await axios.put(`${routes.apiStatuses()}/${params.taskStatusId}`, newStatus, { headers: auth.getAuthHeader() });
         log('status.edit', newStatus);
+
+        console.log('edited task: ', data);
+        dispatch(taskStatusesActions.updateTaskStatus(data));
         const from = { pathname: routes.statusesPagePath() };
-        navigate(from);
-        notify.addMessage(t('statusEdited'));
-        // dispatch(actions.addStatus(label));
+        history.push(from, { message: 'statusEdited' });
       } catch (e) {
         log('label.edit.error', e);
         setSubmitting(false);
-        if (e.response?.status === 401) {
-          const from = { pathname: routes.loginPagePath() };
-          navigate(from);
-          notify.addErrors([{ defaultMessage: t('Доступ запрещён! Пожалуйста, авторизируйтесь.') }]);
-        } else if (e.response?.status === 422) {
+        handleError(e, notify, history);
+        if (e.response?.status === 422 && Array.isArray(e.response?.data)) {
           const errors = e.response?.data
             .reduce((acc, err) => ({ ...acc, [err.field]: err.defaultMessage }), {});
           setErrors(errors);
-        } else {
-          notify.addErrors([{ defaultMessage: e.message }]);
         }
       }
     },
@@ -83,12 +75,16 @@ const EditStatus = () => {
     validateOnChange: false,
   });
 
+  if (!taskStatus) {
+    return null;
+  }
+
   return (
     <>
       <h1 className="my-4">{t('statusEdit')}</h1>
       <Form onSubmit={f.handleSubmit}>
         <Form.Group className="mb-3">
-          <Form.Label>{t('naming')}</Form.Label>
+          <Form.Label htmlFor="name">{t('naming')}</Form.Label>
           <Form.Control
             className="mb-2"
             disabled={f.isSubmitting}
