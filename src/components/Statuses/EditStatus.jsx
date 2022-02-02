@@ -63,11 +63,13 @@ const EditStatus = () => {
       } catch (e) {
         log('label.edit.error', e);
         setSubmitting(false);
-        handleError(e, notify, history);
         if (e.response?.status === 422 && Array.isArray(e.response?.data)) {
           const errors = e.response?.data
             .reduce((acc, err) => ({ ...acc, [err.field]: err.defaultMessage }), {});
           setErrors(errors);
+          notify.addError('taskStatusEditFail');
+        } else {
+          handleError(e, notify, history);
         }
       }
     },

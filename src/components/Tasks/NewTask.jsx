@@ -26,9 +26,9 @@ const NewTask = () => {
   const dispatch = useDispatch();
 
   const history = useHistory();
-  const executors = useSelector((state) => state.users?.users);
-  const labels = useSelector((state) => state.labels?.labels);
-  const taskStatuses = useSelector((state) => state.taskStatuses?.taskStatuses);
+  const executors = useSelector((state) => state.users?.users) ?? [];
+  const labels = useSelector((state) => state.labels?.labels) ?? [];
+  const taskStatuses = useSelector((state) => state.taskStatuses?.taskStatuses) ?? [];
 
   const auth = useAuth();
   const notify = useNotify();
@@ -60,11 +60,13 @@ const NewTask = () => {
       } catch (e) {
         log('task.create.error', e);
         setSubmitting(false);
-        handleError(e, notify, history, auth);
         if (e.response?.status === 422 && Array.isArray(e.response?.data)) {
           const errors = e.response?.data
             .reduce((acc, err) => ({ ...acc, [err.field]: err.defaultMessage }), {});
           setErrors(errors);
+          notify.addError('taskCreateFail');
+        } else {
+          handleError(e, notify, history, auth);
         }
       }
     },

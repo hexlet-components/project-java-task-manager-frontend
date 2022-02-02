@@ -32,7 +32,11 @@ const Statuses = () => {
       dispatch(actions.removeTaskStatus(id));
       notify.addMessage('statusRemoved');
     } catch (e) {
-      handleError(e, notify, history, auth);
+      if (e.response?.status === 422) {
+        notify.addError('taskStatusRemoveFail');
+      } else {
+        handleError(e, notify, history, auth);
+      }
     }
   };
 

@@ -32,9 +32,12 @@ const Tasks = () => {
       dispatch(taskActions.removeTask((id)));
       notify.addMessage('taskRemoved');
     } catch (e) {
-      handleError(e, notify, history, auth);
       if (e.response?.status === 403) {
-        notify.addErrors([{ defaultMessage: t('Задачу может удалить только её автор') }]);
+        notify.addErrors([{ text: t('Задачу может удалить только её автор') }]);
+      } else if (e.response?.status === 422) {
+        notify.addError('taskRemoveFail');
+      } else {
+        handleError(e, notify, history, auth);
       }
     }
   };

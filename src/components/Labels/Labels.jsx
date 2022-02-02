@@ -35,7 +35,11 @@ const Labels = () => {
       dispatch(labelsActions.removeLabel(id));
       notify.addMessage('labelRemoved');
     } catch (e) {
-      handleError(e, notify, history, auth);
+      if (e.response?.status === 422) {
+        notify.addError('labelRemoveFail');
+      } else {
+        handleError(e, notify, history, auth);
+      }
     }
   };
 

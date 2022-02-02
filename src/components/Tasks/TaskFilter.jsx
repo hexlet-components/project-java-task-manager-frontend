@@ -32,6 +32,7 @@ const TaskFilter = (props) => {
       isMyTasks: false,
     },
     onSubmit: async (formData, { setSubmitting }) => {
+      notify.clean();
       try {
         const params = {};
         if (formData.isMyTasks) {

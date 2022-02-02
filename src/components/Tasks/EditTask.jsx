@@ -52,7 +52,7 @@ const EditTask = () => {
     initialValues: {
       name: task?.name,
       description: task?.description,
-      status: task?.taskStatus?.id,
+      taskStatusId: task?.taskStatus?.id,
       executor: task?.executor?.id,
       labels: task?.labels?.map(({ id }) => id),
     },
@@ -63,7 +63,7 @@ const EditTask = () => {
           name: currentTaskData.name,
           description: currentTaskData.description,
           executorId: parseInt(currentTaskData.executor, 10),
-          taskStatusId: parseInt(currentTaskData.status, 10),
+          taskStatusId: parseInt(currentTaskData.taskStatusId, 10),
           labelIds: currentTaskData.labels.map((id) => parseInt(id, 10)),
         };
         const { data } = await axios.put(`${routes.apiTasks()}/${task.id}`, requestTask, { headers: auth.getAuthHeader() });
@@ -74,11 +74,13 @@ const EditTask = () => {
       } catch (e) {
         log('task.edit.error', e);
         setSubmitting(false);
-        handleError(e, notify, history, auth);
         if (e.response?.status === 422 && Array.isArray(e.response?.data)) {
           const errors = e.response?.data
             .reduce((acc, err) => ({ ...acc, [err.field]: err.defaultMessage }), {});
           setErrors(errors);
+          notify.addError('taskEditFail');
+        } else {
+          handleError(e, notify, history, auth);
         }
       }
     },
@@ -130,23 +132,23 @@ const EditTask = () => {
         </Form.Group>
 
         <Form.Group className="mb-3">
-          <Form.Label htmlFor="status">{t('status')}</Form.Label>
+          <Form.Label htmlFor="taskStatusId">{t('status')}</Form.Label>
           <Form.Select
             nullable
-            value={f.values.status}
+            value={f.values.taskStatusId}
             disabled={f.isSubmitting}
             onChange={f.handleChange}
             onBlur={f.handleBlur}
-            isInvalid={f.errors.status && f.touched.status}
-            id="status"
-            name="status"
+            isInvalid={f.errors.taskStatusId && f.touched.taskStatusId}
+            id="taskStatusId"
+            name="taskStatusId"
           >
             <option value="">{null}</option>
             {taskStatuses
               .map((status) => <option key={status.id} value={status.id}>{status.name}</option>)}
           </Form.Select>
           <Form.Control.Feedback type="invalid">
-            {t(f.errors.status)}
+            {t(f.errors.taskStatusId)}
           </Form.Control.Feedback>
         </Form.Group>
 

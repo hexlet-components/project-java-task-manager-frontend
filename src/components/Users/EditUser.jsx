@@ -78,8 +78,8 @@ const EditUser = () => {
           const errors = e.response?.data
             .reduce((acc, err) => ({ ...acc, [err.field]: err.defaultMessage }), {});
           setErrors(errors);
-        }
-        if (e.response?.status === 403) {
+          notify.addError('userEditFail');
+        } else if (e.response?.status === 403) {
           notify.addErrors([{ text: 'userDeleteDenied' }]);
         } else {
           handleError(e, notify, history);

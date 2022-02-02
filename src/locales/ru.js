@@ -65,10 +65,25 @@ const ru = {
     taskRemoved: 'Задача удалена',
     enter: 'Войти',
     tasksStatusId: 'Статус',
+    taskStatusId: 'Статус',
     statusName: 'Статус',
     taskEdit: 'Изменение задачи',
     accessDenied: 'Доступ запрещён! Пожалуйста, авторизируйтесь.',
     save: 'Сохранить',
+
+    taskCreateFail: 'Не удалось создать задачу',
+    taskEditFail: 'Не удалось изменить задачу',
+    taskRemoveFail: 'Не удалось удалить задачу',
+
+    taskStatusCreateFail: 'Не удалось создать статус',
+    taskStatusEditFail: 'Не удалось изменить статус',
+    taskStatusRemoveFail: 'Не удалось удалить статус',
+
+    labelCreateFail: 'Не удалось создать метку',
+    labelEditFail: 'Не удалось изменить метку',
+    labelRemoveFail: 'Не удалось удалить метку',
+
+    userEditFail: 'Не удалось изменить пользователя',
   },
 };
 
