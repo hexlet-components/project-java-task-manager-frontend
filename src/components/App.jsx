@@ -4,7 +4,6 @@ import React, { useEffect } from 'react';
 import {
   Switch,
   Route,
-  Redirect,
   useHistory,
 } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
@@ -117,9 +116,14 @@ const App = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [auth.user]);
 
-  const PrivateRoute = ({ children }) => (
-    auth.user ? children : <Redirect to={routes.loginPagePath()} />
-  );
+  const PrivateRoute = ({ children }) => {
+    if (!auth.user) {
+      const from = { pathname: routes.homePagePath() };
+      history.push(from, { message: 'accessDenied', type: 'error' });
+      return null;
+    }
+    return children;
+  };
 
   return (
     <>

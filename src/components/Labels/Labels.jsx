@@ -7,7 +7,7 @@ import { Table, Form, Button } from 'react-bootstrap';
 import axios from 'axios';
 import { Link, useHistory } from 'react-router-dom';
 
-import { actions as labelsActions } from '../../slices/labelsSlice.js';
+import { actions as labelsActions, selectors } from '../../slices/labelsSlice.js';
 import handleError from '../../utils.js';
 import { useAuth, useNotify } from '../../hooks/index.js';
 import routes from '../../routes.js';
@@ -19,10 +19,7 @@ log.enabled = true;
 
 const Labels = () => {
   const { t } = useTranslation();
-  const { labels } = useSelector((state) => {
-    log(state);
-    return state.labels;
-  });
+  const labels = useSelector(selectors.selectAll);
   const auth = useAuth();
   const notify = useNotify();
   const history = useHistory();

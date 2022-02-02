@@ -11,11 +11,11 @@ import handleError from '../../utils.js';
 import { useAuth, useNotify } from '../../hooks/index.js';
 import routes from '../../routes.js';
 import TaskFilter from './TaskFilter.jsx';
-import { actions as taskActions } from '../../slices/tasksSlice.js';
+import { actions as taskActions, selectors } from '../../slices/tasksSlice.js';
 
 const Tasks = () => {
   const { t } = useTranslation();
-  const tasks = useSelector((state) => state.tasks?.tasks);
+  const tasks = useSelector(selectors.selectAll);
   const [filteredTasks, setFilteredTasks] = useState(null);
   const auth = useAuth();
   const notify = useNotify();

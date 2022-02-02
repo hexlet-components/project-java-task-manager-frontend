@@ -10,6 +10,7 @@ import { Link, useHistory } from 'react-router-dom';
 import { useAuth, useNotify } from '../../hooks/index.js';
 import routes from '../../routes.js';
 import handleError from '../../utils.js';
+import { selectors } from '../../slices/usersSlice.js';
 
 import getLogger from '../../lib/logger.js';
 
@@ -22,7 +23,7 @@ const UsersComponent = () => {
   const notify = useNotify();
   const history = useHistory();
 
-  const { users } = useSelector((state) => state.users);
+  const users = useSelector(selectors.selectAll);
 
   const removeUserHandler = async (event, id) => {
     log(event, id);

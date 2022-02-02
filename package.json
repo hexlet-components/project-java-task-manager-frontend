@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "@reduxjs/toolkit": "^1.6.2",
+    "@reduxjs/toolkit": "^1.7.1",
     "@rollbar/react": "^0.8.0",
     "axios": "^0.24.0",
     "bootstrap": "^5.1.3",

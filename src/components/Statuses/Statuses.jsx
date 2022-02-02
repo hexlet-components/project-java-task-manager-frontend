@@ -7,7 +7,7 @@ import { Table, Form, Button } from 'react-bootstrap';
 import axios from 'axios';
 import { Link, useHistory } from 'react-router-dom';
 
-import { actions } from '../../slices/taskStatusesSlice.js';
+import { actions, selectors } from '../../slices/taskStatusesSlice.js';
 import handleError from '../../utils.js';
 import { useAuth, useNotify } from '../../hooks/index.js';
 import routes from '../../routes.js';
@@ -19,7 +19,7 @@ const Statuses = () => {
   const history = useHistory();
   const dispatch = useDispatch();
 
-  const { taskStatuses } = useSelector((state) => state.taskStatuses);
+  const taskStatuses = useSelector(selectors.selectAll);
 
   if (!taskStatuses) {
     return null;

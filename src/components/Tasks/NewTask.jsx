@@ -13,6 +13,9 @@ import { actions as tasksActions } from '../../slices/tasksSlice.js';
 import routes from '../../routes.js';
 import { useAuth, useNotify } from '../../hooks/index.js';
 import handleError from '../../utils.js';
+import { selectors as userSelectors } from '../../slices/usersSlice.js';
+import { selectors as labelSelectors } from '../../slices/labelsSlice.js';
+import { selectors as taskStatuseSelectors } from '../../slices/taskStatusesSlice.js';
 
 import getLogger from '../../lib/logger.js';
 
@@ -26,9 +29,9 @@ const NewTask = () => {
   const dispatch = useDispatch();
 
   const history = useHistory();
-  const executors = useSelector((state) => state.users?.users) ?? [];
-  const labels = useSelector((state) => state.labels?.labels) ?? [];
-  const taskStatuses = useSelector((state) => state.taskStatuses?.taskStatuses) ?? [];
+  const executors = useSelector(userSelectors.selectAll);
+  const labels = useSelector(labelSelectors.selectAll);
+  const taskStatuses = useSelector(taskStatuseSelectors.selectAll);
 
   const auth = useAuth();
   const notify = useNotify();
@@ -53,6 +56,10 @@ const NewTask = () => {
         };
         const { data } = await axios
           .post(routes.apiTasks(), requestTask, { headers: auth.getAuthHeader() });
+        data.taskStatus = taskStatuses.find((item) => item.id === data.taskStatus?.id);
+        if (data.executor?.id) {
+          data.executor = executors.find((item) => item.id === data.executor?.id);
+        }
         log('task.create', data);
         dispatch(tasksActions.addTask(data));
         const from = { pathname: routes.tasksPagePath() };

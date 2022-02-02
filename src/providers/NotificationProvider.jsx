@@ -13,19 +13,20 @@ import { actions as notifyActions } from '../slices/notificationSlice.js';
 const NotificationProvider = ({ children }) => {
   const history = useHistory();
   const dispatch = useDispatch();
+  const clean = () => dispatch(notifyActions.clean());
 
   const messageMapping = {
     errors(currentErrors) {
       const errors = currentErrors.map((err) => ({ id: _.uniqueId(), ...err, type: 'danger' }));
-      dispatch(notifyActions.addMessages((errors)));
+      dispatch(notifyActions.addMessages(errors));
     },
     error(currentError) {
-      const errors = [{ id: _.uniqueId(), text: currentError, type: 'danger' }];
-      dispatch(notifyActions.addMessages((errors)));
+      const error = { id: _.uniqueId(), text: currentError, type: 'danger' };
+      dispatch(notifyActions.addMessage(error));
     },
     info(text) {
-      const messages = [{ id: _.uniqueId(), text, type: 'info' }];
-      dispatch(notifyActions.addMessage((messages)));
+      const messages = { id: _.uniqueId(), text, type: 'info' };
+      dispatch(notifyActions.addMessage(messages));
     },
   };
 
@@ -50,8 +51,6 @@ const NotificationProvider = ({ children }) => {
       messageMapping[type](message);
     });
   });
-
-  const clean = () => dispatch(notifyActions.clean());
 
   return (
     <NotificationContext.Provider value={{

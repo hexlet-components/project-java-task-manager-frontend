@@ -13,6 +13,9 @@ import { actions as tasksActions } from '../../slices/tasksSlice.js';
 import handleError from '../../utils.js';
 import routes from '../../routes.js';
 import { useAuth, useNotify } from '../../hooks/index.js';
+import { selectors as userSelectors } from '../../slices/usersSlice.js';
+import { selectors as labelSelectors } from '../../slices/labelsSlice.js';
+import { selectors as taskStatuseSelectors } from '../../slices/taskStatusesSlice.js';
 
 import getLogger from '../../lib/logger.js';
 
@@ -23,9 +26,9 @@ const getValidationSchema = () => yup.object().shape({});
 
 const EditTask = () => {
   const { t } = useTranslation();
-  const executors = useSelector((state) => state.users?.users);
-  const labels = useSelector((state) => state.labels?.labels);
-  const taskStatuses = useSelector((state) => state.taskStatuses?.taskStatuses);
+  const executors = useSelector(userSelectors.selectAll);
+  const labels = useSelector(labelSelectors.selectAll);
+  const taskStatuses = useSelector(taskStatuseSelectors.selectAll);
 
   const [task, setTask] = useState(null);
   const params = useParams();

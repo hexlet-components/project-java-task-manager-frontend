@@ -1,7 +1,7 @@
 // @ts-check
 
-import React, { useState, useEffect } from 'react';
-import { useDispatch } from 'react-redux';
+import React from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { useTranslation } from 'react-i18next';
 import { Form, Button } from 'react-bootstrap';
 import { useFormik } from 'formik';
@@ -9,7 +9,7 @@ import axios from 'axios';
 import * as yup from 'yup';
 import { useParams, useHistory } from 'react-router-dom';
 
-import { actions as usersActions } from '../../slices/usersSlice.js';
+import { actions as usersActions, selectors } from '../../slices/usersSlice.js';
 import handleError from '../../utils.js';
 import { useAuth, useNotify } from '../../hooks/index.js';
 import routes from '../../routes.js';
@@ -28,28 +28,7 @@ const EditUser = () => {
   const params = useParams();
   const notify = useNotify();
   const dispatch = useDispatch();
-
-  const [user, setUser] = useState(null);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const { data } = await axios.get(`${routes.apiUsers()}/${params.userId}`, { headers: auth.getAuthHeader() });
-        setUser(data);
-      } catch (e) {
-        if (e.response?.status === 401) {
-          const from = { pathname: routes.loginPagePath() };
-          history.push(from, { message: 'accessDenied', type: 'error' });
-        } else if (e.response?.status === 422 && Array.isArray(e.response?.data)) {
-          notify.addErrors(e.response?.data);
-        } else {
-          handleError(e, notify, history, auth);
-        }
-      }
-    };
-    fetchData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  const user = useSelector((state) => selectors.selectById(state, params.userId));
 
   const f = useFormik({
     enableReinitialize: true,
@@ -60,7 +39,7 @@ const EditUser = () => {
       password: user?.password,
     },
     validationSchema: getValidationSchema(),
-    onSubmit: async (userData, { setSubmitting, setErrors }) => {
+    onSubmit: async (userData, { setSubmitting, setErrors, resetForm }) => {
       try {
         const newUser = {
           id: params.userId,
@@ -71,6 +50,7 @@ const EditUser = () => {
         dispatch(usersActions.updateUser(newUser));
         const from = { pathname: routes.usersPagePath() };
         history.push(from, { message: 'userEdited' });
+        resetForm();
       } catch (e) {
         log('user.edit.error', e);
         setSubmitting(false);
@@ -91,6 +71,12 @@ const EditUser = () => {
   });
 
   if (!user) {
+    return null;
+  }
+
+  if (user.email !== auth?.user?.email) {
+    const from = { pathname: routes.usersPagePath() };
+    history.push(from, { message: 'userEditDenied', type: 'error' });
     return null;
   }
 

@@ -1,32 +1,29 @@
-/* eslint-disable no-param-reassign */
-import { createSlice } from '@reduxjs/toolkit';
-// import { fetchUsers } from './usersSlice.js';
-// import { actions as usersActions } from './usersSlice.js';
+import { createSlice, createEntityAdapter } from '@reduxjs/toolkit';
 
 import getLogger from '../lib/logger.js';
 
 const log = getLogger('slice notifications');
 log.enabled = true;
 
-const initialState = {
-  messages: [],
-};
+const adapter = createEntityAdapter();
+const initialState = adapter.getInitialState();
 
 export const notificationsSlice = createSlice({
-  name: 'notifications',
+  name: 'notify',
   initialState,
   reducers: {
-    addMessage(state, { payload }) {
-      state.messages = payload;
+    addMessages(state, action) {
+      adapter.removeAll(state);
+      adapter.addMany(state, action);
     },
-    addMessages(state, { payload }) {
-      state.messages = payload;
+    addMessage(state, action) {
+      adapter.removeAll(state);
+      adapter.addOne(state, action);
     },
-    clean(state) {
-      state.messages = [];
-    },
+    clean: adapter.removeAll,
   },
 });
 
+export const selectors = adapter.getSelectors((state) => state.notify);
 export const { actions } = notificationsSlice;
 export default notificationsSlice.reducer;
