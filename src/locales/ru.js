@@ -41,7 +41,7 @@ const ru = {
     remove: 'Удалить',
     createStatus: 'Создать статус',
     statusCreating: 'Создание статуса',
-    statusCreated: 'Статус создан',
+    statusCreated: 'Статус успешно создан',
     logout: 'Выход',
     statusEdit: 'Изменение статуса',
     statusEdited: 'Статус успешно изменён',
