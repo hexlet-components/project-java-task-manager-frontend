@@ -36,7 +36,7 @@ const EditUser = () => {
       firstName: user?.firstName,
       lastName: user?.lastName,
       email: user?.email,
-      password: user?.password,
+      password: '',
     },
     validationSchema: getValidationSchema(),
     onSubmit: async (userData, { setSubmitting, setErrors, resetForm }) => {
@@ -49,9 +49,9 @@ const EditUser = () => {
         await axios.put(`${routes.apiUsers()}/${params.userId}`, newUser, { headers: auth.getAuthHeader() });
         auth.update(newUser);
         dispatch(usersActions.updateUser(newUser));
+        resetForm();
         const from = { pathname: routes.usersPagePath() };
         history.push(from, { message: 'userEdited' });
-        resetForm();
       } catch (e) {
         log('user.edit.error', e);
         setSubmitting(false);
