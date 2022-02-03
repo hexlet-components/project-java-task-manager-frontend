@@ -70,6 +70,13 @@ const EditTask = () => {
           labelIds: currentTaskData.labels.map((id) => parseInt(id, 10)),
         };
         const { data } = await axios.put(`${routes.apiTasks()}/${task.id}`, requestTask, { headers: auth.getAuthHeader() });
+        data.taskStatus = taskStatuses.find((item) => item.id === data.taskStatus?.id);
+        if (data.executor?.id) {
+          data.executor = executors.find((item) => item.id === data.executor?.id);
+        }
+        if (requestTask.labelsIds) {
+          data.labels = labels.filter((item) => requestTask.labelIds.includes(item.id));
+        }
         log('task.edit', data);
         dispatch(tasksActions.updateTask(data));
         const from = { pathname: routes.tasksPagePath() };
