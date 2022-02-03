@@ -131,8 +131,8 @@ describe('work', () => {
     userEvent.selectOptions(screen.getByLabelText('Исполнитель'), `${users[0].firstName} ${users[0].lastName}`);
     userEvent.click(await screen.findByRole('button', { name: /Создать/i }));
     expect(await screen.findByText('новая задача')).toBeInTheDocument();
-    expect(await screen.findByText(taskStatuses[0].name)).toBeInTheDocument();
-    expect(await screen.findByText(`${users[0].firstName} ${users[0].lastName}`)).toBeInTheDocument();
+    expect(await screen.findAllByText(taskStatuses[0].name)).toHaveLength(2);
+    expect(await screen.findAllByText(`${users[0].firstName} ${users[0].lastName}`)).toHaveLength(3);
     expect(await screen.findByText('Задача успешно создана')).toBeInTheDocument();
   });
 
