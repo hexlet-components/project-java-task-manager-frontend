@@ -1,6 +1,6 @@
 // @ts-check
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Switch,
   Route,
@@ -52,8 +52,10 @@ const App = () => {
   const history = useHistory();
   const auth = useAuth();
   const dispatch = useDispatch();
+  const [isLoading, setLoading] = useState(true);
 
   useEffect(() => {
+    setLoading(true);
     const dataRoutes = [
       {
         name: 'users',
@@ -112,7 +114,8 @@ const App = () => {
     const promises = dataRoutes.filter(({ isSecurity }) => (isSecurity ? auth.user : true))
       .map(({ getData }) => getData());
     Promise.all(promises)
-      .catch((error) => handleError(error, notify, history, auth));
+      .catch((error) => handleError(error, notify, history, auth))
+      .finally(() => setLoading(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [auth.user]);
 
@@ -124,6 +127,10 @@ const App = () => {
     }
     return children;
   };
+
+  if (isLoading) {
+    return null;
+  }
 
   return (
     <>

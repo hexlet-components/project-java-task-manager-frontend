@@ -47,6 +47,7 @@ const EditUser = () => {
         };
         log('user.edit', newUser);
         await axios.put(`${routes.apiUsers()}/${params.userId}`, newUser, { headers: auth.getAuthHeader() });
+        auth.update(newUser);
         dispatch(usersActions.updateUser(newUser));
         const from = { pathname: routes.usersPagePath() };
         history.push(from, { message: 'userEdited' });

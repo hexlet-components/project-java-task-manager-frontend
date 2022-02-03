@@ -1,7 +1,7 @@
 // @ts-check
 
 import React from 'react';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useTranslation } from 'react-i18next';
 import { Table, Form, Button } from 'react-bootstrap';
 import axios from 'axios';
@@ -10,7 +10,7 @@ import { Link, useHistory } from 'react-router-dom';
 import { useAuth, useNotify } from '../../hooks/index.js';
 import routes from '../../routes.js';
 import handleError from '../../utils.js';
-import { selectors } from '../../slices/usersSlice.js';
+import { actions, selectors } from '../../slices/usersSlice.js';
 
 import getLogger from '../../lib/logger.js';
 
@@ -22,6 +22,7 @@ const UsersComponent = () => {
   const auth = useAuth();
   const notify = useNotify();
   const history = useHistory();
+  const dispatch = useDispatch();
 
   const users = useSelector(selectors.selectAll);
 
@@ -33,6 +34,7 @@ const UsersComponent = () => {
       auth.logOut();
       log('success');
       notify.addMessage('userDeleted');
+      dispatch(actions.removeUser(id));
     } catch (e) {
       if (e.response?.status === 403) {
         notify.addErrors([{ text: 'userDeleteDenied' }]);

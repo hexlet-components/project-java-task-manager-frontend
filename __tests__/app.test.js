@@ -213,7 +213,7 @@ describe('user', () => {
     userEvent.type(await screen.findByLabelText(/Пароль/i), 'password');
     userEvent.click(await screen.findByText(/Изменить/i));
 
-    expect(await screen.findByText('Пользователь успешно изменен')).toBeInTheDocument();
+    expect(await screen.findByText('Пользователь успешно изменён')).toBeInTheDocument();
     expect(await screen.findByText('FirstName edit LastName edit')).toBeInTheDocument();
     expect(await screen.findByText('test_email_edit@google.com')).toBeInTheDocument();
   });
