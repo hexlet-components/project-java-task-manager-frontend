@@ -144,40 +144,40 @@ const App = () => {
           <Route path={routes.signupPagePath()} component={Registration} />
 
           <Route exact path={routes.usersPagePath()}><UsersComponent /></Route>
-          <Route path={`${routes.usersPagePath()}/:userId/edit`}>
+          <Route path={routes.userEditPagePath(':userId')}>
             <PrivateRoute><EditUser /></PrivateRoute>
           </Route>
 
           <Route exact path={routes.statusesPagePath()}>
             <PrivateRoute><Statuses /></PrivateRoute>
           </Route>
-          <Route path={`${routes.statusesPagePath()}/new`}>
+          <Route path={routes.newStatusPagePath()}>
             <PrivateRoute><NewStatus /></PrivateRoute>
           </Route>
-          <Route path={`${routes.statusesPagePath()}/:taskStatusId/edit`}>
+          <Route path={routes.statusEditPagePath(':taskStatusId')}>
             <PrivateRoute><EditStatus /></PrivateRoute>
           </Route>
 
           <Route exact path={routes.labelsPagePath()}>
             <PrivateRoute><Labels /></PrivateRoute>
           </Route>
-          <Route path={`${routes.labelsPagePath()}/:labelId/edit`}>
+          <Route path={routes.labelEditPagePath(':labelId')}>
             <PrivateRoute><EditLabel /></PrivateRoute>
           </Route>
-          <Route path={`${routes.labelsPagePath()}/new`}>
+          <Route path={routes.newLabelPagePath()}>
             <PrivateRoute><NewLabel /></PrivateRoute>
           </Route>
 
           <Route exact path={routes.tasksPagePath()}>
             <PrivateRoute><Tasks /></PrivateRoute>
           </Route>
-          <Route path={`${routes.tasksPagePath()}/new`}>
+          <Route path={routes.newTaskPagePath()}>
             <PrivateRoute><NewTask /></PrivateRoute>
           </Route>
-          <Route path={`${routes.tasksPagePath()}/:taskId/edit`}>
+          <Route path={routes.taskEditPagePath(':taskId')}>
             <PrivateRoute><EditTask /></PrivateRoute>
           </Route>
-          <Route path={`${routes.tasksPagePath()}/:taskId`}>
+          <Route path={routes.taskPagePath(':taskId')}>
             <PrivateRoute><Task /></PrivateRoute>
           </Route>
 

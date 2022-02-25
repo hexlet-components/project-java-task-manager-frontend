@@ -1,4 +1,5 @@
 // @ts-check
+/* eslint-disable react-hooks/rules-of-hooks */
 
 import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
@@ -26,9 +27,11 @@ const getValidationSchema = () => yup.object().shape({});
 
 const EditTask = () => {
   const { t } = useTranslation();
-  const executors = useSelector(userSelectors.selectAll);
-  const labels = useSelector(labelSelectors.selectAll);
-  const taskStatuses = useSelector(taskStatuseSelectors.selectAll);
+  const { executors, labels, taskStatuses } = useSelector((state) => ({
+    executors: userSelectors.selectAll(state),
+    labels: labelSelectors.selectAll(state),
+    taskStatuses: taskStatuseSelectors.selectAll(state),
+  }));
 
   const [task, setTask] = useState(null);
   const params = useParams();
@@ -40,7 +43,8 @@ const EditTask = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const { data: currentTaskData } = await axios.get(`${routes.apiTasks()}/${params.taskId}`, { headers: auth.getAuthHeader() });
+        const { data: currentTaskData } = await axios.get(routes.apiTask(params.taskId),
+          { headers: auth.getAuthHeader() });
         setTask(currentTaskData);
       } catch (e) {
         handleError(e, notify, history);
@@ -53,11 +57,11 @@ const EditTask = () => {
   const f = useFormik({
     enableReinitialize: true,
     initialValues: {
-      name: task?.name,
-      description: task?.description,
-      taskStatusId: task?.taskStatus?.id,
-      executor: task?.executor?.id,
-      labels: task?.labels?.map(({ id }) => id),
+      name: task?.name ?? '',
+      description: task?.description ?? '',
+      taskStatusId: task?.taskStatus?.id ?? '',
+      executor: task?.executor ? task.executor.id : '',
+      labels: task?.labels ? task.labels.map(({ id }) => id) : [],
     },
     validationSchema: getValidationSchema(),
     onSubmit: async (currentTaskData, { setSubmitting, setErrors }) => {
@@ -69,19 +73,15 @@ const EditTask = () => {
           taskStatusId: parseInt(currentTaskData.taskStatusId, 10),
           labelIds: currentTaskData.labels.map((id) => parseInt(id, 10)),
         };
-        const { data } = await axios.put(`${routes.apiTasks()}/${task.id}`, requestTask, { headers: auth.getAuthHeader() });
-        data.taskStatus = taskStatuses.find((item) => item.id === data.taskStatus?.id);
-        if (data.executor?.id) {
-          data.executor = executors.find((item) => item.id === data.executor?.id);
-        }
-        if (requestTask.labelsIds) {
-          data.labels = labels.filter((item) => requestTask.labelIds.includes(item.id));
-        }
+        const { data } = await axios.put(routes.apiTask(task.id),
+          requestTask, { headers: auth.getAuthHeader() });
+        // data.taskStatus = taskStatuses.find((item) => item.id === data.taskStatus?.id);
         log('task.edit', data);
         dispatch(tasksActions.updateTask(data));
         const from = { pathname: routes.tasksPagePath() };
         history.push(from, { message: 'taskEdited' });
       } catch (e) {
+        console.error(e);
         log('task.edit.error', e);
         setSubmitting(false);
         if (e.response?.status === 422 && Array.isArray(e.response?.data)) {

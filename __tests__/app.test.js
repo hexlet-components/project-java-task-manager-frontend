@@ -123,16 +123,17 @@ describe('work', () => {
 
   test('create task', async () => {
     userEvent.click(await screen.findByText(/Задачи/i));
+    expect(await screen.findByText(/создать задачу/i)).toBeInTheDocument();
     userEvent.click(await screen.findByText(/создать задачу/i));
-    userEvent.type(await screen.findByLabelText(/Наименование/i), 'новая задача');
+    userEvent.type(await screen.findByLabelText(/Наименование/i), 'новая задача1');
     userEvent.type(await screen.findByLabelText(/Описание/i), 'описание задачи');
     userEvent.selectOptions(screen.getByLabelText('Статус'), [taskStatuses[0].name]);
     userEvent.selectOptions(screen.getByRole('listbox', { name: 'Метки' }), [labels[0].name, labels[1].name]);
     userEvent.selectOptions(screen.getByLabelText('Исполнитель'), `${users[0].firstName} ${users[0].lastName}`);
     userEvent.click(await screen.findByRole('button', { name: /Создать/i }));
-    expect(await screen.findByText('новая задача')).toBeInTheDocument();
-    expect(await screen.findAllByText(taskStatuses[0].name)).toHaveLength(2);
-    expect(await screen.findAllByText(`${users[0].firstName} ${users[0].lastName}`)).toHaveLength(3);
+    expect(await screen.findByText('новая задача1')).toBeInTheDocument();
+    expect(await screen.findAllByText(taskStatuses[0].name)).toHaveLength(3);
+    expect(await screen.findAllByText(`${users[0].firstName} ${users[0].lastName}`)).toHaveLength(4);
     expect(await screen.findByText('Задача успешно создана')).toBeInTheDocument();
   });
 
@@ -150,7 +151,7 @@ describe('work', () => {
     userEvent.click(await screen.findByRole('button', { name: /Изменить/i }));
 
     expect(await screen.findByText('новая задача 1')).toBeInTheDocument();
-    expect(await screen.findByText(taskStatuses[1].name)).toBeInTheDocument();
+    expect(await screen.findAllByText(taskStatuses[1].name)).toHaveLength(2);
     expect(await screen.findByText(`${users[1].firstName} ${users[1].lastName}`)).toBeInTheDocument();
     expect(await screen.findByText('Задача успешно отредактирована')).toBeInTheDocument();
   });
@@ -164,7 +165,7 @@ describe('work', () => {
     userEvent.selectOptions(screen.getByRole('listbox', { name: 'Метки' }), [labels[0].name, labels[1].name]);
     userEvent.selectOptions(screen.getByLabelText('Исполнитель'), `${users[0].firstName} ${users[0].lastName}`);
     userEvent.click(await screen.findByRole('button', { name: /Создать/i }));
-    expect(await screen.findByText('новая задача')).toBeInTheDocument();
+    expect(await screen.findByText('новая задача remove')).toBeInTheDocument();
 
     const removeButtons = screen.getAllByText('Удалить');
     userEvent.click(removeButtons[removeButtons.length - 1]);

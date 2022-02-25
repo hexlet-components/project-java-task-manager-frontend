@@ -32,7 +32,8 @@ const EditLabel = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const { data } = await axios.get(`${routes.apiLabels()}/${params.labelId}`, { headers: auth.getAuthHeader() });
+        const { data } = await axios.get(routes.apiLabel(params.labelId),
+          { headers: auth.getAuthHeader() });
         setLabel(data);
       } catch (e) {
         handleError(e, notify, history);
@@ -45,14 +46,15 @@ const EditLabel = () => {
   const f = useFormik({
     enableReinitialize: true,
     initialValues: {
-      name: label?.name,
+      name: label ? label.name : '',
     },
     validationSchema: getValidationSchema(),
     onSubmit: async ({ name }, { setSubmitting, setErrors }) => {
       const newLabel = { name };
       try {
         log('label.edit', label);
-        const { data } = await axios.put(`${routes.apiLabels()}/${params.labelId}`, newLabel, { headers: auth.getAuthHeader() });
+        const { data } = await axios.put(routes.apiLabel(params.labelId),
+          newLabel, { headers: auth.getAuthHeader() });
         dispatch(labelsActions.updateLabel(data));
         const from = { pathname: routes.labelsPagePath() };
         history.push(from, { message: 'labelEdited' });
@@ -60,7 +62,7 @@ const EditLabel = () => {
         log('label.edit.error', e);
         setSubmitting(false);
         if (e.response?.status === 422 && Array.isArray(e.response?.data)) {
-          const errors = e.response?.data
+          const errors = e.response.data
             .reduce((acc, err) => ({ ...acc, [err.field]: err.defaultMessage }), {});
           setErrors(errors);
           notify.addError('labelEditFail');

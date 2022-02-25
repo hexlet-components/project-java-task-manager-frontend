@@ -33,9 +33,9 @@ const EditUser = () => {
   const f = useFormik({
     enableReinitialize: true,
     initialValues: {
-      firstName: user?.firstName,
-      lastName: user?.lastName,
-      email: user?.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
       password: '',
     },
     validationSchema: getValidationSchema(),
@@ -46,7 +46,7 @@ const EditUser = () => {
           ...userData,
         };
         log('user.edit', newUser);
-        await axios.put(`${routes.apiUsers()}/${params.userId}`, newUser, { headers: auth.getAuthHeader() });
+        await axios.put(routes.apiUser(params.userId), newUser, { headers: auth.getAuthHeader() });
         auth.update(newUser);
         dispatch(usersActions.updateUser(newUser));
         resetForm();
@@ -56,7 +56,7 @@ const EditUser = () => {
         log('user.edit.error', e);
         setSubmitting(false);
         if (e.response?.status === 422 && Array.isArray(e.response?.data)) {
-          const errors = e.response?.data
+          const errors = e.response.data
             .reduce((acc, err) => ({ ...acc, [err.field]: err.defaultMessage }), {});
           setErrors(errors);
           notify.addError('userEditFail');
@@ -75,7 +75,7 @@ const EditUser = () => {
     return null;
   }
 
-  if (user.email !== auth?.user?.email) {
+  if (user.email !== auth.user.email) {
     const from = { pathname: routes.usersPagePath() };
     history.push(from, { message: 'userEditDenied', type: 'error' });
     return null;

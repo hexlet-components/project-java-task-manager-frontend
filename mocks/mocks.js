@@ -100,6 +100,12 @@ const mockServer = (server, rest) => {
         ..._req.body,
         id: _.uniqueId('test_'),
         createdAt: Date.now(),
+        author: {
+          id: users[0].id,
+        },
+        taskStatus: {
+          id: _req.body.taskStatusId,
+        },
       };
       return res(ctx.status(200), ctx.json(result));
     }),
@@ -118,6 +124,10 @@ const mockServer = (server, rest) => {
       const result = {
         ...currentItem,
         ..._req.body,
+        taskStatus: {
+          check: 'hello',
+          id: _req.body.taskStatusId,
+        },
       };
       return res(ctx.status(200), ctx.json(result));
     }),

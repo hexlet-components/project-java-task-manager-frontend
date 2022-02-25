@@ -28,11 +28,11 @@ const Labels = () => {
   const removeLabel = async (event, id) => {
     event.preventDefault();
     try {
-      await axios.delete(`${routes.apiLabels()}/${id}`, { headers: auth.getAuthHeader() });
+      await axios.delete(routes.apiLabel(id), { headers: auth.getAuthHeader() });
       dispatch(labelsActions.removeLabel(id));
       notify.addMessage('labelRemoved');
     } catch (e) {
-      if (e.response?.status === 422) {
+      if (e.response.status === 422) {
         notify.addError('labelRemoveFail');
       } else {
         handleError(e, notify, history, auth);
@@ -46,7 +46,7 @@ const Labels = () => {
 
   return (
     <>
-      <Link to={`${routes.labelsPagePath()}/new`}>{t('createLabel')}</Link>
+      <Link to={routes.newLabelPagePath()}>{t('createLabel')}</Link>
       <Table striped hover>
         <thead>
           <tr>
@@ -62,7 +62,7 @@ const Labels = () => {
               <td>{label.name}</td>
               <td>{new Date(label.createdAt).toLocaleString('ru')}</td>
               <td>
-                <Link to={`${routes.labelsPagePath()}/${label.id}/edit`}>{t('edit', { defaultValue: 'Изменить' })}</Link>
+                <Link to={routes.labelEditPagePath(label.id)}>{t('edit', { defaultValue: 'Изменить' })}</Link>
                 <Form onSubmit={(event) => removeLabel(event, label.id)}>
                   <Button type="submit" variant="link">Удалить</Button>
                 </Form>

@@ -30,7 +30,7 @@ const UsersComponent = () => {
     log(event, id);
     event.preventDefault();
     try {
-      await axios.delete(`${routes.apiUsers()}/${id}`, { headers: auth.getAuthHeader() });
+      await axios.delete(routes.apiUser(id), { headers: auth.getAuthHeader() });
       auth.logOut();
       log('success');
       notify.addMessage('userDeleted');
@@ -67,7 +67,7 @@ const UsersComponent = () => {
             <td>{user.email}</td>
             <td>{new Date(user.createdAt).toLocaleString('ru')}</td>
             <td>
-              <Link to={`${routes.usersPagePath()}/${user.id}/edit`}>{t('edit')}</Link>
+              <Link to={routes.userEditPagePath(user.id)}>{t('edit')}</Link>
               <Form onSubmit={(event) => removeUserHandler(event, user.id)}>
                 <Button type="submit" variant="link">Удалить</Button>
               </Form>

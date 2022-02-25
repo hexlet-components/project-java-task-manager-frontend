@@ -29,9 +29,11 @@ const NewTask = () => {
   const dispatch = useDispatch();
 
   const history = useHistory();
-  const executors = useSelector(userSelectors.selectAll);
-  const labels = useSelector(labelSelectors.selectAll);
-  const taskStatuses = useSelector(taskStatuseSelectors.selectAll);
+  const { executors, labels, taskStatuses } = useSelector((state) => ({
+    executors: userSelectors.selectAll(state),
+    labels: labelSelectors.selectAll(state),
+    taskStatuses: taskStatuseSelectors.selectAll(state),
+  }));
 
   const auth = useAuth();
   const notify = useNotify();
@@ -56,10 +58,7 @@ const NewTask = () => {
         };
         const { data } = await axios
           .post(routes.apiTasks(), requestTask, { headers: auth.getAuthHeader() });
-        data.taskStatus = taskStatuses.find((item) => item.id === data.taskStatus?.id);
-        if (data.executor?.id) {
-          data.executor = executors.find((item) => item.id === data.executor?.id);
-        }
+        // data.taskStatus = taskStatuses.find((item) => item.id === data.taskStatus.id);
         log('task.create', data);
         dispatch(tasksActions.addTask(data));
         const from = { pathname: routes.tasksPagePath() };
@@ -68,7 +67,7 @@ const NewTask = () => {
         log('task.create.error', e);
         setSubmitting(false);
         if (e.response?.status === 422 && Array.isArray(e.response?.data)) {
-          const errors = e.response?.data
+          const errors = e.response.data
             .reduce((acc, err) => ({ ...acc, [err.field]: err.defaultMessage }), {});
           setErrors(errors);
           notify.addError('taskCreateFail');

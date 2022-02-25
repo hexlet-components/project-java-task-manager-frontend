@@ -28,7 +28,7 @@ const Statuses = () => {
   const removeStatus = async (event, id) => {
     event.preventDefault();
     try {
-      await axios.delete(`${routes.apiStatuses()}/${id}`, { headers: auth.getAuthHeader() });
+      await axios.delete(routes.apiStatus(id), { headers: auth.getAuthHeader() });
       dispatch(actions.removeTaskStatus(id));
       notify.addMessage('statusRemoved');
     } catch (e) {
@@ -42,7 +42,7 @@ const Statuses = () => {
 
   return (
     <>
-      <Link to={`${routes.statusesPagePath()}/new`}>{t('createStatus')}</Link>
+      <Link to={routes.newStatusPagePath()}>{t('createStatus')}</Link>
       <Table striped hover>
         <thead>
           <tr>
@@ -58,7 +58,7 @@ const Statuses = () => {
               <td>{status.name}</td>
               <td>{new Date(status.createdAt).toLocaleString('ru')}</td>
               <td>
-                <Link to={`${routes.statusesPagePath()}/${status.id}/edit`}>{t('edit')}</Link>
+                <Link to={routes.statusEditPagePath(status.id)}>{t('edit')}</Link>
                 <Form onSubmit={(event) => removeStatus(event, status.id)}>
                   <Button type="submit" variant="link">{t('remove')}</Button>
                 </Form>

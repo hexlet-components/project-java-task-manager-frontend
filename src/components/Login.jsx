@@ -36,9 +36,8 @@ const Login = () => {
         const { from } = { from: { pathname: routes.homePagePath() } };
         history.push(from, { message: 'loginSuccess' });
       } catch (e) {
-        console.log(e);
-        if (e.response?.status === 422 && Array.isArray(e.response?.data)) {
-          const errors = e.response?.data
+        if (e.response?.status === 422 && Array.isArray(e.response.data)) {
+          const errors = e.response.data
             .reduce((acc, err) => ({ ...acc, [err.field]: err.defaultMessage }), {});
           setErrors(errors);
         } else if (e.response?.status === 401) {

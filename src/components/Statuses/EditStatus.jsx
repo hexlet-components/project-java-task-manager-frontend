@@ -32,11 +32,10 @@ const EditStatus = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const { data } = await axios.get(`${routes.apiStatuses()}/${params.taskStatusId}`, { headers: auth.getAuthHeader() });
-        console.log('DATA: ', data);
+        const { data } = await axios.get(routes.apiStatus(params.taskStatusId),
+          { headers: auth.getAuthHeader() });
         setTaskStatus(data);
       } catch (e) {
-        console.log(e);
         handleError(e, notify, history, auth);
       }
     };
@@ -47,16 +46,16 @@ const EditStatus = () => {
   const f = useFormik({
     enableReinitialize: true,
     initialValues: {
-      name: taskStatus?.name,
+      name: taskStatus ? taskStatus.name : '',
     },
     validationSchema: getValidationSchema(),
     onSubmit: async ({ name }, { setSubmitting, setErrors }) => {
       const newStatus = { name };
       try {
-        const { data } = await axios.put(`${routes.apiStatuses()}/${params.taskStatusId}`, newStatus, { headers: auth.getAuthHeader() });
+        const { data } = await axios.put(routes.apiStatus(params.taskStatusId),
+          newStatus, { headers: auth.getAuthHeader() });
         log('status.edit', newStatus);
 
-        console.log('edited task: ', data);
         dispatch(taskStatusesActions.updateTaskStatus(data));
         const from = { pathname: routes.statusesPagePath() };
         history.push(from, { message: 'statusEdited' });
@@ -64,7 +63,7 @@ const EditStatus = () => {
         log('label.edit.error', e);
         setSubmitting(false);
         if (e.response?.status === 422 && Array.isArray(e.response?.data)) {
-          const errors = e.response?.data
+          const errors = e.response.data
             .reduce((acc, err) => ({ ...acc, [err.field]: err.defaultMessage }), {});
           setErrors(errors);
           notify.addError('taskStatusEditFail');

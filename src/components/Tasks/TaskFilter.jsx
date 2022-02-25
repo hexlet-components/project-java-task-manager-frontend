@@ -23,9 +23,11 @@ const TaskFilter = (props) => {
   const history = useHistory();
   const { t } = useTranslation();
   const notify = useNotify();
-  const executors = useSelector(userSelectors.selectAll);
-  const labels = useSelector(labelSelectors.selectAll);
-  const taskStatuses = useSelector(taskStatuseSelectors.selectAll);
+  const { executors, labels, taskStatuses } = useSelector((state) => ({
+    executors: userSelectors.selectAll(state),
+    labels: labelSelectors.selectAll(state),
+    taskStatuses: taskStatuseSelectors.selectAll(state),
+  }));
 
   const f = useFormik({
     initialValues: {
@@ -39,7 +41,7 @@ const TaskFilter = (props) => {
       try {
         const params = {};
         if (formData.isMyTasks) {
-          const author = executors.find((user) => user.email === auth?.user?.email);
+          const author = executors.find((user) => user.email === auth.user?.email);
           params.authorId = author.id;
         }
 
