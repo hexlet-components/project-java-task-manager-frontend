@@ -8,8 +8,8 @@ This repository is created and maintained by the team and the community of Hexle
 
 ## Install
 
-```sh
-$ make install
+```bash
+make install
 ```
 
 ## Run

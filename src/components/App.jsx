@@ -1,10 +1,9 @@
 // @ts-check
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Switch,
   Route,
-  Redirect,
   useHistory,
 } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
@@ -53,8 +52,10 @@ const App = () => {
   const history = useHistory();
   const auth = useAuth();
   const dispatch = useDispatch();
+  const [isLoading, setLoading] = useState(true);
 
   useEffect(() => {
+    setLoading(true);
     const dataRoutes = [
       {
         name: 'users',
@@ -113,13 +114,23 @@ const App = () => {
     const promises = dataRoutes.filter(({ isSecurity }) => (isSecurity ? auth.user : true))
       .map(({ getData }) => getData());
     Promise.all(promises)
-      .catch((error) => handleError(error, notify, history, auth));
+      .catch((error) => handleError(error, notify, history, auth))
+      .finally(() => setLoading(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [auth.user]);
 
-  const PrivateRoute = ({ children }) => (
-    auth.user ? children : <Redirect to={routes.loginPagePath()} />
-  );
+  const PrivateRoute = ({ children }) => {
+    if (!auth.user) {
+      const from = { pathname: routes.homePagePath() };
+      history.push(from, { message: 'accessDenied', type: 'error' });
+      return null;
+    }
+    return children;
+  };
+
+  if (isLoading) {
+    return null;
+  }
 
   return (
     <>
@@ -133,40 +144,40 @@ const App = () => {
           <Route path={routes.signupPagePath()} component={Registration} />
 
           <Route exact path={routes.usersPagePath()}><UsersComponent /></Route>
-          <Route path={`${routes.usersPagePath()}/:userId/edit`}>
+          <Route path={routes.userEditPagePath(':userId')}>
             <PrivateRoute><EditUser /></PrivateRoute>
           </Route>
 
           <Route exact path={routes.statusesPagePath()}>
             <PrivateRoute><Statuses /></PrivateRoute>
           </Route>
-          <Route path={`${routes.statusesPagePath()}/new`}>
+          <Route path={routes.newStatusPagePath()}>
             <PrivateRoute><NewStatus /></PrivateRoute>
           </Route>
-          <Route path={`${routes.statusesPagePath()}/:taskStatusId/edit`}>
+          <Route path={routes.statusEditPagePath(':taskStatusId')}>
             <PrivateRoute><EditStatus /></PrivateRoute>
           </Route>
 
           <Route exact path={routes.labelsPagePath()}>
             <PrivateRoute><Labels /></PrivateRoute>
           </Route>
-          <Route path={`${routes.labelsPagePath()}/:labelId/edit`}>
+          <Route path={routes.labelEditPagePath(':labelId')}>
             <PrivateRoute><EditLabel /></PrivateRoute>
           </Route>
-          <Route path={`${routes.labelsPagePath()}/new`}>
+          <Route path={routes.newLabelPagePath()}>
             <PrivateRoute><NewLabel /></PrivateRoute>
           </Route>
 
           <Route exact path={routes.tasksPagePath()}>
             <PrivateRoute><Tasks /></PrivateRoute>
           </Route>
-          <Route path={`${routes.tasksPagePath()}/new`}>
+          <Route path={routes.newTaskPagePath()}>
             <PrivateRoute><NewTask /></PrivateRoute>
           </Route>
-          <Route path={`${routes.tasksPagePath()}/:taskId/edit`}>
+          <Route path={routes.taskEditPagePath(':taskId')}>
             <PrivateRoute><EditTask /></PrivateRoute>
           </Route>
-          <Route path={`${routes.tasksPagePath()}/:taskId`}>
+          <Route path={routes.taskPagePath(':taskId')}>
             <PrivateRoute><Task /></PrivateRoute>
           </Route>
 

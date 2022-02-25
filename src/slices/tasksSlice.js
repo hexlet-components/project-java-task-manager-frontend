@@ -1,68 +1,26 @@
-/* eslint-disable no-param-reassign */
-import axios from 'axios';
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import routes from '../routes.js';
+import { createSlice, createEntityAdapter } from '@reduxjs/toolkit';
 
 import getLogger from '../lib/logger.js';
 
 const log = getLogger('slice tasks');
 log.enabled = true;
 
-export const fetchTasks = createAsyncThunk(
-  'tasks/fetchTasks',
-  async (auth) => {
-    const response = await axios.get(routes.apiTasks(), { headers: auth.getAuthHeader() });
-    return response.data;
-  },
-);
-
-const initialState = {
-  tasks: null,
-  task: null,
-  filteredTasks: null,
-  status: 'idle',
-  error: null,
-};
+const adapter = createEntityAdapter();
+const initialState = adapter.getInitialState();
 
 export const tasksSlice = createSlice({
   name: 'tasks',
   initialState,
   reducers: {
-    addTasks(state, { payload }) {
-      state.tasks = payload;
-    },
-    addTask(state, { payload }) {
-      state.tasks.push(payload);
-    },
+    addTasks: adapter.addMany,
+    addTask: adapter.addOne,
     updateTask(state, { payload }) {
-      const index = state.tasks.findIndex((task) => task.id.toString() === payload.id.toString());
-      state.tasks[index] = payload;
+      adapter.updateOne(state, { id: payload.id, changes: payload });
     },
-    removeTask(state, { payload }) {
-      const id = payload;
-      state.tasks = state.tasks.filter((task) => task.id.toString() !== id.toString());
-    },
-  },
-  extraReducers: (builder) => {
-    builder
-      // get tasks
-      .addCase(fetchTasks.pending, (state) => {
-        log('pending tasks');
-        state.status = 'loading';
-        state.error = null;
-      })
-      .addCase(fetchTasks.rejected, (state, action) => {
-        log('get tasks failed', action.error);
-        state.status = 'failed';
-        state.error = action.error;
-      })
-      .addCase(fetchTasks.fulfilled, (state, action) => {
-        state.status = 'idle';
-        state.error = null;
-        state.tasks = action.payload;
-      });
+    removeTask: adapter.removeOne,
   },
 });
 
+export const selectors = adapter.getSelectors((state) => state.tasks);
 export const { actions } = tasksSlice;
 export default tasksSlice.reducer;

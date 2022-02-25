@@ -6,7 +6,7 @@ import { Form, Button } from 'react-bootstrap';
 import { useFormik } from 'formik';
 import * as yup from 'yup';
 import axios from 'axios';
-import { useHistory, useLocation } from 'react-router-dom';
+import { useHistory } from 'react-router-dom';
 
 import handleError from '../utils.js';
 import { useAuth, useNotify } from '../hooks/index.js';
@@ -16,7 +16,6 @@ const getValidationSchema = () => yup.object().shape({});
 
 const Login = () => {
   const { t } = useTranslation();
-  const location = useLocation();
 
   const auth = useAuth();
   const notify = useNotify();
@@ -34,12 +33,11 @@ const Login = () => {
         const { data: token } = await axios.post(routes.apiLogin(), userData);
 
         auth.logIn({ ...formData, token });
-        const { from } = location.state || { from: { pathname: routes.homePagePath() } };
+        const { from } = { from: { pathname: routes.homePagePath() } };
         history.push(from, { message: 'loginSuccess' });
       } catch (e) {
-        console.log(e);
-        if (e.response?.status === 422 && Array.isArray(e.response?.data)) {
-          const errors = e.response?.data
+        if (e.response?.status === 422 && Array.isArray(e.response.data)) {
+          const errors = e.response.data
             .reduce((acc, err) => ({ ...acc, [err.field]: err.defaultMessage }), {});
           setErrors(errors);
         } else if (e.response?.status === 401) {

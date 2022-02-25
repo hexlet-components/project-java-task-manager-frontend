@@ -1,4 +1,5 @@
 // @ts-check
+/* eslint-disable react-hooks/rules-of-hooks */
 
 import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
@@ -13,6 +14,9 @@ import { actions as tasksActions } from '../../slices/tasksSlice.js';
 import handleError from '../../utils.js';
 import routes from '../../routes.js';
 import { useAuth, useNotify } from '../../hooks/index.js';
+import { selectors as userSelectors } from '../../slices/usersSlice.js';
+import { selectors as labelSelectors } from '../../slices/labelsSlice.js';
+import { selectors as taskStatuseSelectors } from '../../slices/taskStatusesSlice.js';
 
 import getLogger from '../../lib/logger.js';
 
@@ -23,9 +27,11 @@ const getValidationSchema = () => yup.object().shape({});
 
 const EditTask = () => {
   const { t } = useTranslation();
-  const executors = useSelector((state) => state.users?.users);
-  const labels = useSelector((state) => state.labels?.labels);
-  const taskStatuses = useSelector((state) => state.taskStatuses?.taskStatuses);
+  const { executors, labels, taskStatuses } = useSelector((state) => ({
+    executors: userSelectors.selectAll(state),
+    labels: labelSelectors.selectAll(state),
+    taskStatuses: taskStatuseSelectors.selectAll(state),
+  }));
 
   const [task, setTask] = useState(null);
   const params = useParams();
@@ -37,7 +43,8 @@ const EditTask = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const { data: currentTaskData } = await axios.get(`${routes.apiTasks()}/${params.taskId}`, { headers: auth.getAuthHeader() });
+        const { data: currentTaskData } = await axios.get(routes.apiTask(params.taskId),
+          { headers: auth.getAuthHeader() });
         setTask(currentTaskData);
       } catch (e) {
         handleError(e, notify, history);
@@ -50,11 +57,11 @@ const EditTask = () => {
   const f = useFormik({
     enableReinitialize: true,
     initialValues: {
-      name: task?.name,
-      description: task?.description,
-      status: task?.taskStatus?.id,
-      executor: task?.executor?.id,
-      labels: task?.labels?.map(({ id }) => id),
+      name: task?.name ?? '',
+      description: task?.description ?? '',
+      taskStatusId: task?.taskStatus?.id ?? '',
+      executor: task?.executor ? task.executor.id : '',
+      labels: task?.labels ? task.labels.map(({ id }) => id) : [],
     },
     validationSchema: getValidationSchema(),
     onSubmit: async (currentTaskData, { setSubmitting, setErrors }) => {
@@ -63,22 +70,27 @@ const EditTask = () => {
           name: currentTaskData.name,
           description: currentTaskData.description,
           executorId: parseInt(currentTaskData.executor, 10),
-          taskStatusId: parseInt(currentTaskData.status, 10),
+          taskStatusId: parseInt(currentTaskData.taskStatusId, 10),
           labelIds: currentTaskData.labels.map((id) => parseInt(id, 10)),
         };
-        const { data } = await axios.put(`${routes.apiTasks()}/${task.id}`, requestTask, { headers: auth.getAuthHeader() });
+        const { data } = await axios.put(routes.apiTask(task.id),
+          requestTask, { headers: auth.getAuthHeader() });
+        // data.taskStatus = taskStatuses.find((item) => item.id === data.taskStatus?.id);
         log('task.edit', data);
         dispatch(tasksActions.updateTask(data));
         const from = { pathname: routes.tasksPagePath() };
         history.push(from, { message: 'taskEdited' });
       } catch (e) {
+        console.error(e);
         log('task.edit.error', e);
         setSubmitting(false);
-        handleError(e, notify, history, auth);
         if (e.response?.status === 422 && Array.isArray(e.response?.data)) {
           const errors = e.response?.data
             .reduce((acc, err) => ({ ...acc, [err.field]: err.defaultMessage }), {});
           setErrors(errors);
+          notify.addError('taskEditFail');
+        } else {
+          handleError(e, notify, history, auth);
         }
       }
     },
@@ -130,23 +142,23 @@ const EditTask = () => {
         </Form.Group>
 
         <Form.Group className="mb-3">
-          <Form.Label htmlFor="status">{t('status')}</Form.Label>
+          <Form.Label htmlFor="taskStatusId">{t('status')}</Form.Label>
           <Form.Select
             nullable
-            value={f.values.status}
+            value={f.values.taskStatusId}
             disabled={f.isSubmitting}
             onChange={f.handleChange}
             onBlur={f.handleBlur}
-            isInvalid={f.errors.status && f.touched.status}
-            id="status"
-            name="status"
+            isInvalid={f.errors.taskStatusId && f.touched.taskStatusId}
+            id="taskStatusId"
+            name="taskStatusId"
           >
             <option value="">{null}</option>
             {taskStatuses
               .map((status) => <option key={status.id} value={status.id}>{status.name}</option>)}
           </Form.Select>
           <Form.Control.Feedback type="invalid">
-            {t(f.errors.status)}
+            {t(f.errors.taskStatusId)}
           </Form.Control.Feedback>
         </Form.Group>
 

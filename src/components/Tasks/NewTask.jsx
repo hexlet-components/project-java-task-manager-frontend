@@ -13,6 +13,9 @@ import { actions as tasksActions } from '../../slices/tasksSlice.js';
 import routes from '../../routes.js';
 import { useAuth, useNotify } from '../../hooks/index.js';
 import handleError from '../../utils.js';
+import { selectors as userSelectors } from '../../slices/usersSlice.js';
+import { selectors as labelSelectors } from '../../slices/labelsSlice.js';
+import { selectors as taskStatuseSelectors } from '../../slices/taskStatusesSlice.js';
 
 import getLogger from '../../lib/logger.js';
 
@@ -26,9 +29,11 @@ const NewTask = () => {
   const dispatch = useDispatch();
 
   const history = useHistory();
-  const executors = useSelector((state) => state.users?.users);
-  const labels = useSelector((state) => state.labels?.labels);
-  const taskStatuses = useSelector((state) => state.taskStatuses?.taskStatuses);
+  const { executors, labels, taskStatuses } = useSelector((state) => ({
+    executors: userSelectors.selectAll(state),
+    labels: labelSelectors.selectAll(state),
+    taskStatuses: taskStatuseSelectors.selectAll(state),
+  }));
 
   const auth = useAuth();
   const notify = useNotify();
@@ -53,6 +58,7 @@ const NewTask = () => {
         };
         const { data } = await axios
           .post(routes.apiTasks(), requestTask, { headers: auth.getAuthHeader() });
+        // data.taskStatus = taskStatuses.find((item) => item.id === data.taskStatus.id);
         log('task.create', data);
         dispatch(tasksActions.addTask(data));
         const from = { pathname: routes.tasksPagePath() };
@@ -60,11 +66,13 @@ const NewTask = () => {
       } catch (e) {
         log('task.create.error', e);
         setSubmitting(false);
-        handleError(e, notify, history, auth);
         if (e.response?.status === 422 && Array.isArray(e.response?.data)) {
-          const errors = e.response?.data
+          const errors = e.response.data
             .reduce((acc, err) => ({ ...acc, [err.field]: err.defaultMessage }), {});
           setErrors(errors);
+          notify.addError('taskCreateFail');
+        } else {
+          handleError(e, notify, history, auth);
         }
       }
     },

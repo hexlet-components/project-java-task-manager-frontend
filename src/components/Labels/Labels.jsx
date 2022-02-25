@@ -7,7 +7,7 @@ import { Table, Form, Button } from 'react-bootstrap';
 import axios from 'axios';
 import { Link, useHistory } from 'react-router-dom';
 
-import { actions as labelsActions } from '../../slices/labelsSlice.js';
+import { actions as labelsActions, selectors } from '../../slices/labelsSlice.js';
 import handleError from '../../utils.js';
 import { useAuth, useNotify } from '../../hooks/index.js';
 import routes from '../../routes.js';
@@ -19,10 +19,7 @@ log.enabled = true;
 
 const Labels = () => {
   const { t } = useTranslation();
-  const { labels } = useSelector((state) => {
-    log(state);
-    return state.labels;
-  });
+  const labels = useSelector(selectors.selectAll);
   const auth = useAuth();
   const notify = useNotify();
   const history = useHistory();
@@ -31,11 +28,15 @@ const Labels = () => {
   const removeLabel = async (event, id) => {
     event.preventDefault();
     try {
-      await axios.delete(`${routes.apiLabels()}/${id}`, { headers: auth.getAuthHeader() });
+      await axios.delete(routes.apiLabel(id), { headers: auth.getAuthHeader() });
       dispatch(labelsActions.removeLabel(id));
       notify.addMessage('labelRemoved');
     } catch (e) {
-      handleError(e, notify, history, auth);
+      if (e.response.status === 422) {
+        notify.addError('labelRemoveFail');
+      } else {
+        handleError(e, notify, history, auth);
+      }
     }
   };
 
@@ -45,7 +46,7 @@ const Labels = () => {
 
   return (
     <>
-      <Link to={`${routes.labelsPagePath()}/new`}>{t('createLabel')}</Link>
+      <Link to={routes.newLabelPagePath()}>{t('createLabel')}</Link>
       <Table striped hover>
         <thead>
           <tr>
@@ -61,7 +62,7 @@ const Labels = () => {
               <td>{label.name}</td>
               <td>{new Date(label.createdAt).toLocaleString('ru')}</td>
               <td>
-                <Link to={`${routes.labelsPagePath()}/${label.id}/edit`}>{t('edit', { defaultValue: 'Изменить' })}</Link>
+                <Link to={routes.labelEditPagePath(label.id)}>{t('edit', { defaultValue: 'Изменить' })}</Link>
                 <Form onSubmit={(event) => removeLabel(event, label.id)}>
                   <Button type="submit" variant="link">Удалить</Button>
                 </Form>

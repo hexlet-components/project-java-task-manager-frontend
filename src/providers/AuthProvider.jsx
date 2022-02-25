@@ -17,20 +17,33 @@ const AuthProvider = ({ children }) => {
     setUser(userAuth);
   };
 
+  const update = (userData) => {
+    const userAuth = {
+      ...user,
+      username: userData.email,
+    };
+    localStorage.setItem('user', JSON.stringify(userAuth));
+    setUser(userAuth);
+  };
+
   const logOut = () => {
     localStorage.removeItem('user');
     setUser(null);
   };
 
   const getAuthHeader = () => {
-    const userData = JSON.parse(localStorage.getItem('user'));
+    const userData = JSON.parse(localStorage.getItem('user')) ?? {};
 
-    return userData?.token ? { Authorization: `Bearer ${userData.token}` } : {};
+    return userData.token ? { Authorization: `Bearer ${userData.token}` } : {};
   };
 
   return (
     <AuthContext.Provider value={{
-      logIn, logOut, getAuthHeader, user,
+      logIn,
+      logOut,
+      getAuthHeader,
+      user,
+      update,
     }}
     >
       {children}

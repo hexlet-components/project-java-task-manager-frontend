@@ -32,7 +32,8 @@ const Task = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const { data: taskData } = await axios.get(`${routes.apiTasks()}/${params.taskId}`, { headers: auth.getAuthHeader() });
+        const { data: taskData } = await axios.get(routes.apiTask(params.taskId),
+          { headers: auth.getAuthHeader() });
         setTask(taskData);
       } catch (e) {
         handleError(e, notify, history);
@@ -49,7 +50,7 @@ const Task = () => {
   const removeTask = async (event, id) => {
     event.preventDefault();
     try {
-      await axios.delete(`${routes.apiTasks()}/${id}`, { headers: auth.getAuthHeader() });
+      await axios.delete(routes.apiTask(id), { headers: auth.getAuthHeader() });
       dispatch(tasksActions.removeTask(id));
       const from = { pathname: routes.tasksPagePath() };
       history.push(from, { message: 'taskRemoved' });
@@ -71,23 +72,25 @@ const Task = () => {
               {t('author')}
             </Col>
             <Col>
-              {`${task.author?.firstName ?? ''} ${task.author?.lastName ?? ''}`}
+              {`${task.author.firstName} ${task.author.lastName}`}
             </Col>
           </Row>
-          <Row>
-            <Col>
-              {t('executor')}
-            </Col>
-            <Col>
-              {`${task.executor?.firstName ?? ''} ${task.executor?.lastName ?? ''}`}
-            </Col>
-          </Row>
+          {task.executor && (
+            <Row>
+              <Col>
+                {t('executor')}
+              </Col>
+              <Col>
+                {`${task.executor.firstName} ${task.executor.lastName}`}
+              </Col>
+            </Row>
+          )}
           <Row>
             <Col>
               {t('status')}
             </Col>
             <Col>
-              {task.taskStatus?.name}
+              {task.taskStatus.name}
             </Col>
           </Row>
           <Row>
@@ -103,13 +106,13 @@ const Task = () => {
               {t('labels')}
               :
               <ul>
-                {task?.labels?.map((label) => (<li key={label.id}>{label.name}</li>))}
+                {task.labels?.map((label) => (<li key={label.id}>{label.name}</li>))}
               </ul>
             </Col>
           </Row>
           <Row>
             <Col>
-              <Link to={`${routes.tasksPagePath()}/${task.id}/edit`}>{t('edit')}</Link>
+              <Link to={routes.taskEditPagePath(task.id)}>{t('edit')}</Link>
               <Form onSubmit={(e) => removeTask(e, task.id)}>
                 <Button type="submit" variant="link">Удалить</Button>
               </Form>

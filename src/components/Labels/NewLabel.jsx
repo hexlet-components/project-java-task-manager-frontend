@@ -45,11 +45,13 @@ const NewLabel = () => {
       } catch (e) {
         log('label.create.error', e);
         setSubmitting(false);
-        handleError(e, notify, history, auth);
         if (e.response?.status === 422 && Array.isArray(e.response?.data)) {
-          const errors = e.response?.data
+          const errors = e.response.data
             .reduce((acc, err) => ({ ...acc, [err.field]: err.defaultMessage }), {});
           setErrors(errors);
+          notify.addError('labelCreateFail');
+        } else {
+          handleError(e, notify, history, auth);
         }
       }
     },

@@ -71,7 +71,7 @@ describe('work', () => {
     userEvent.type(await screen.findByLabelText(/Наименование/i), 'новый статус');
     userEvent.click(await screen.findByRole('button', { name: /Создать/i }));
     expect(await screen.findByText('новый статус')).toBeInTheDocument();
-    expect(await screen.findByText('Статус создан')).toBeInTheDocument();
+    expect(await screen.findByText('Статус успешно создан')).toBeInTheDocument();
   });
 
   test('edit task status', async () => {
@@ -82,7 +82,7 @@ describe('work', () => {
     userEvent.type(await screen.findByLabelText(/Наименование/i), 'измененный статус');
     userEvent.click(await screen.findByRole('button', { name: /изменить/i }));
     expect(await screen.findByText('измененный статус')).toBeInTheDocument();
-    expect(await screen.findByText('Статус изменён')).toBeInTheDocument();
+    expect(await screen.findByText('Статус успешно изменён')).toBeInTheDocument();
   });
 
   test('delete task status', async () => {
@@ -99,7 +99,7 @@ describe('work', () => {
     userEvent.type(await screen.findByLabelText(/Наименование/i), 'новая метка');
     userEvent.click(await screen.findByRole('button', { name: /Создать/i }));
     expect(await screen.findByText('новая метка')).toBeInTheDocument();
-    expect(await screen.findByText('Метка создана')).toBeInTheDocument();
+    expect(await screen.findByText('Метка успешно создана')).toBeInTheDocument();
   });
 
   test('edit label', async () => {
@@ -110,7 +110,7 @@ describe('work', () => {
     userEvent.type(await screen.findByLabelText(/Наименование/i), 'измененная метка');
     userEvent.click(await screen.findByRole('button', { name: /изменить/i }));
     expect(await screen.findByText('измененная метка')).toBeInTheDocument();
-    expect(await screen.findByText('Метка изменена')).toBeInTheDocument();
+    expect(await screen.findByText('Метка успешно изменена')).toBeInTheDocument();
   });
 
   test('delete label', async () => {
@@ -123,30 +123,22 @@ describe('work', () => {
 
   test('create task', async () => {
     userEvent.click(await screen.findByText(/Задачи/i));
+    expect(await screen.findByText(/создать задачу/i)).toBeInTheDocument();
     userEvent.click(await screen.findByText(/создать задачу/i));
-    userEvent.type(await screen.findByLabelText(/Наименование/i), 'новая задача');
+    userEvent.type(await screen.findByLabelText(/Наименование/i), 'новая задача1');
     userEvent.type(await screen.findByLabelText(/Описание/i), 'описание задачи');
     userEvent.selectOptions(screen.getByLabelText('Статус'), [taskStatuses[0].name]);
     userEvent.selectOptions(screen.getByRole('listbox', { name: 'Метки' }), [labels[0].name, labels[1].name]);
     userEvent.selectOptions(screen.getByLabelText('Исполнитель'), `${users[0].firstName} ${users[0].lastName}`);
     userEvent.click(await screen.findByRole('button', { name: /Создать/i }));
-    expect(await screen.findByText('новая задача')).toBeInTheDocument();
-    expect(await screen.findByText(taskStatuses[0].name)).toBeInTheDocument();
-    expect(await screen.findByText(`${users[0].firstName} ${users[0].lastName}`)).toBeInTheDocument();
-    expect(await screen.findByText('Задача создана')).toBeInTheDocument();
+    expect(await screen.findByText('новая задача1')).toBeInTheDocument();
+    expect(await screen.findAllByText(taskStatuses[0].name)).toHaveLength(3);
+    expect(await screen.findAllByText(`${users[0].firstName} ${users[0].lastName}`)).toHaveLength(4);
+    expect(await screen.findByText('Задача успешно создана')).toBeInTheDocument();
   });
 
   test('edit task', async () => {
     userEvent.click(await screen.findByText(/Задачи/i));
-    userEvent.click(await screen.findByText(/создать задачу/i));
-    userEvent.type(await screen.findByLabelText(/Наименование/i), 'новая задача');
-    userEvent.type(await screen.findByLabelText(/Описание/i), 'описание задачи');
-    userEvent.selectOptions(screen.getByLabelText('Статус'), [taskStatuses[0].name]);
-    userEvent.selectOptions(screen.getByRole('listbox', { name: 'Метки' }), [labels[0].name, labels[1].name]);
-    userEvent.selectOptions(screen.getByLabelText('Исполнитель'), `${users[0].firstName} ${users[0].lastName}`);
-    userEvent.click(await screen.findByRole('button', { name: /Создать/i }));
-    expect(await screen.findByText('новая задача')).toBeInTheDocument();
-
     userEvent.click(screen.getAllByText('Изменить')[0]);
 
     userEvent.clear(await screen.findByLabelText(/Наименование/i));
@@ -159,26 +151,26 @@ describe('work', () => {
     userEvent.click(await screen.findByRole('button', { name: /Изменить/i }));
 
     expect(await screen.findByText('новая задача 1')).toBeInTheDocument();
-    expect(await screen.findByText(taskStatuses[1].name)).toBeInTheDocument();
+    expect(await screen.findAllByText(taskStatuses[1].name)).toHaveLength(2);
     expect(await screen.findByText(`${users[1].firstName} ${users[1].lastName}`)).toBeInTheDocument();
-    expect(await screen.findByText('Задача отредактирована')).toBeInTheDocument();
+    expect(await screen.findByText('Задача успешно отредактирована')).toBeInTheDocument();
   });
 
   test('delete task', async () => {
     userEvent.click(await screen.findByText(/Задачи/i));
     userEvent.click(await screen.findByText(/создать задачу/i));
-    userEvent.type(await screen.findByLabelText(/Наименование/i), 'новая задача');
-    userEvent.type(await screen.findByLabelText(/Описание/i), 'описание задачи');
+    userEvent.type(await screen.findByLabelText(/Наименование/i), 'новая задача remove');
+    userEvent.type(await screen.findByLabelText(/Описание/i), 'описание задачи remove');
     userEvent.selectOptions(screen.getByLabelText('Статус'), [taskStatuses[0].name]);
     userEvent.selectOptions(screen.getByRole('listbox', { name: 'Метки' }), [labels[0].name, labels[1].name]);
     userEvent.selectOptions(screen.getByLabelText('Исполнитель'), `${users[0].firstName} ${users[0].lastName}`);
     userEvent.click(await screen.findByRole('button', { name: /Создать/i }));
-    expect(await screen.findByText('новая задача')).toBeInTheDocument();
+    expect(await screen.findByText('новая задача remove')).toBeInTheDocument();
 
     const removeButtons = screen.getAllByText('Удалить');
     userEvent.click(removeButtons[removeButtons.length - 1]);
     await waitFor(() => {
-      expect(screen.queryByText('новая задача')).not.toBeInTheDocument();
+      expect(screen.queryByText('новая задача remove')).not.toBeInTheDocument();
     });
   });
 });
@@ -213,18 +205,18 @@ describe('user', () => {
     userEvent.click(screen.getAllByText('Изменить')[0]);
 
     userEvent.clear(await screen.findByLabelText(/Имя/i));
-    userEvent.type(await screen.findByLabelText(/Имя/i), 'FirstName');
+    userEvent.type(await screen.findByLabelText(/Имя/i), 'FirstName edit');
     userEvent.clear(await screen.findByLabelText(/Фамилия/i));
-    userEvent.type(await screen.findByLabelText(/Фамилия/i), 'LastName');
+    userEvent.type(await screen.findByLabelText(/Фамилия/i), 'LastName edit');
     userEvent.clear(await screen.findByLabelText(/Email/i));
-    userEvent.type(await screen.findByLabelText(/Email/i), 'test_email@google.com');
+    userEvent.type(await screen.findByLabelText(/Email/i), 'test_email_edit@google.com');
     userEvent.clear(await screen.findByLabelText(/Пароль/i));
     userEvent.type(await screen.findByLabelText(/Пароль/i), 'password');
     userEvent.click(await screen.findByText(/Изменить/i));
 
-    expect(await screen.findByText('Пользователь изменен')).toBeInTheDocument();
-    expect(await screen.findByText('FirstName LastName')).toBeInTheDocument();
-    expect(await screen.findByText('test_email@google.com')).toBeInTheDocument();
+    expect(await screen.findByText('Пользователь успешно изменён')).toBeInTheDocument();
+    expect(await screen.findByText('FirstName edit LastName edit')).toBeInTheDocument();
+    expect(await screen.findByText('test_email_edit@google.com')).toBeInTheDocument();
   });
 
   test('delete user', async () => {

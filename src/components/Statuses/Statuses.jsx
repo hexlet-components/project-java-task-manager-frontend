@@ -7,7 +7,7 @@ import { Table, Form, Button } from 'react-bootstrap';
 import axios from 'axios';
 import { Link, useHistory } from 'react-router-dom';
 
-import { actions } from '../../slices/taskStatusesSlice.js';
+import { actions, selectors } from '../../slices/taskStatusesSlice.js';
 import handleError from '../../utils.js';
 import { useAuth, useNotify } from '../../hooks/index.js';
 import routes from '../../routes.js';
@@ -19,7 +19,7 @@ const Statuses = () => {
   const history = useHistory();
   const dispatch = useDispatch();
 
-  const { taskStatuses } = useSelector((state) => state.taskStatuses);
+  const taskStatuses = useSelector(selectors.selectAll);
 
   if (!taskStatuses) {
     return null;
@@ -28,17 +28,21 @@ const Statuses = () => {
   const removeStatus = async (event, id) => {
     event.preventDefault();
     try {
-      await axios.delete(`${routes.apiStatuses()}/${id}`, { headers: auth.getAuthHeader() });
+      await axios.delete(routes.apiStatus(id), { headers: auth.getAuthHeader() });
       dispatch(actions.removeTaskStatus(id));
       notify.addMessage('statusRemoved');
     } catch (e) {
-      handleError(e, notify, history, auth);
+      if (e.response?.status === 422) {
+        notify.addError('taskStatusRemoveFail');
+      } else {
+        handleError(e, notify, history, auth);
+      }
     }
   };
 
   return (
     <>
-      <Link to={`${routes.statusesPagePath()}/new`}>{t('createStatus')}</Link>
+      <Link to={routes.newStatusPagePath()}>{t('createStatus')}</Link>
       <Table striped hover>
         <thead>
           <tr>
@@ -54,7 +58,7 @@ const Statuses = () => {
               <td>{status.name}</td>
               <td>{new Date(status.createdAt).toLocaleString('ru')}</td>
               <td>
-                <Link to={`${routes.statusesPagePath()}/${status.id}/edit`}>{t('edit')}</Link>
+                <Link to={routes.statusEditPagePath(status.id)}>{t('edit')}</Link>
                 <Form onSubmit={(event) => removeStatus(event, status.id)}>
                   <Button type="submit" variant="link">{t('remove')}</Button>
                 </Form>

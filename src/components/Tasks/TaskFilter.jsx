@@ -13,6 +13,9 @@ import {
 import handleError from '../../utils.js';
 import { useAuth, useNotify } from '../../hooks/index.js';
 import routes from '../../routes.js';
+import { selectors as userSelectors } from '../../slices/usersSlice.js';
+import { selectors as labelSelectors } from '../../slices/labelsSlice.js';
+import { selectors as taskStatuseSelectors } from '../../slices/taskStatusesSlice.js';
 
 const TaskFilter = (props) => {
   const { foundTasks: handler } = props;
@@ -20,9 +23,11 @@ const TaskFilter = (props) => {
   const history = useHistory();
   const { t } = useTranslation();
   const notify = useNotify();
-  const executors = useSelector((state) => state.users?.users);
-  const labels = useSelector((state) => state.labels?.labels);
-  const taskStatuses = useSelector((state) => state.taskStatuses?.taskStatuses);
+  const { executors, labels, taskStatuses } = useSelector((state) => ({
+    executors: userSelectors.selectAll(state),
+    labels: labelSelectors.selectAll(state),
+    taskStatuses: taskStatuseSelectors.selectAll(state),
+  }));
 
   const f = useFormik({
     initialValues: {
@@ -32,10 +37,11 @@ const TaskFilter = (props) => {
       isMyTasks: false,
     },
     onSubmit: async (formData, { setSubmitting }) => {
+      notify.clean();
       try {
         const params = {};
         if (formData.isMyTasks) {
-          const author = executors.find((user) => user.email === auth?.user?.email);
+          const author = executors.find((user) => user.email === auth.user?.email);
           params.authorId = author.id;
         }
 
