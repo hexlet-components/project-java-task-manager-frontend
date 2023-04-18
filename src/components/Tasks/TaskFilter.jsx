@@ -150,6 +150,8 @@ const TaskFilter = (props) => {
               label={t('isMyTasks')}
               onChange={f.handleChange}
               value={f.values.isMyTasks}
+              id="isMyTasks"
+              name="isMyTasks"
             />
           </Form.Group>
 
